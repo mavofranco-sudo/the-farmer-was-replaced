@@ -39,18 +39,6 @@ def _espera_crescer():
 				if not can_harvest():
 					pronto = False
 
-def _acao_limpa():
-	def bloco():
-		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, _colhe_se_pronto)
-	return bloco
-
-def _colhe_se_pronto():
-	if get_entity_type() != None and can_harvest():
-		harvest()
-
-def _limpa_campo():
-	megafazenda.paraleliza_blocos(_acao_limpa())
-
 def _ordena_coluna(col):
 	trocou = True
 	while trocou:
@@ -78,74 +66,36 @@ def _ordena_campo():
 		for lin in range(campo.n):
 			_ordena_linha(lin)
 
-def _colhe_cactos_existentes():
-	def acao():
-		if get_entity_type() == Entities.Cactus and can_harvest():
+def _colhe_se_pronto():
+	if get_entity_type() != None and can_harvest():
+		harvest()
+
+def _limpa_campo():
+	# usa drones para limpar em paralelo
+	def bloco():
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, _colhe_se_pronto)
+	megafazenda.paraleliza_blocos(bloco)
+
+def _planta_cacto():
+	# cacto NAO consome semente - cresce direto do solo com till+plant
+	if not _celula_vazia():
+		if can_harvest():
 			harvest()
-	campo.movimento(acao)
-
-def _planta_n(n_sementes):
-	plantados = [0]
-	def acao():
-		if plantados[0] >= n_sementes:
+		else:
 			return
-		if not _celula_vazia():
-			if can_harvest():
-				harvest()
-			else:
-				return
-		if num_items(Items.Cactus) == 0:
-			return
-		_till_ate_soil()
-		if num_unlocked(Unlocks.Plant):
-			plant(Entities.Cactus)
-			plantados[0] = plantados[0] + 1
-		if num_items(Items.Water) > 0:
-			use_item(Items.Water)
-	campo.movimento(acao)
-
-def _ciclo_com_n(n_celulas):
-	_limpa_campo()
-	_planta_n(n_celulas)
-	_espera_crescer()
-	_ordena_campo()
-	campo.vai_para(0, 0)
-	harvest()
-
-def _reabastece_sementes():
-	n_celulas = campo.n * campo.n
-	_colhe_cactos_existentes()
-	if num_items(Items.Cactus) == 0:
-		print("    [erro] sem sementes de cacto - nao e possivel iniciar cultivo")
-		return
-	while num_items(Items.Cactus) < n_celulas:
-		disponiveis = num_items(Items.Cactus)
-		if disponiveis == 0:
-			print("    [erro] sementes esgotaram durante reabastecimento")
-			return
-		print("    [cacto] reabastecendo: " + str(disponiveis) + " sementes")
-		_ciclo_com_n(disponiveis)
+	_till_ate_soil()
+	if num_unlocked(Unlocks.Plant):
+		plant(Entities.Cactus)
+	if num_items(Items.Water) > 0:
+		use_item(Items.Water)
 
 def _planta_campo():
 	def acao():
-		if not _celula_vazia():
-			if can_harvest():
-				harvest()
-			else:
-				return
-		_till_ate_soil()
-		if num_unlocked(Unlocks.Plant) and num_items(Items.Cactus) > 0:
-			plant(Entities.Cactus)
-		if num_items(Items.Water) > 0:
-			use_item(Items.Water)
+		_planta_cacto()
 	campo.movimento(acao)
 
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
-		_reabastece_sementes()
-		if num_items(Items.Cactus) == 0:
-			print("    [cacto] sem sementes, abortando")
-			return
 		_limpa_campo()
 		_planta_campo()
 		_espera_crescer()
