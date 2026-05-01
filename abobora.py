@@ -8,7 +8,7 @@ _fila = None
 def inicializa():
 	global _fila
 
-	campo.cultiva_arado(Entities.Pumpkin)
+	campo.colhe_e_cultiva_arado(Entities.Pumpkin)
 	_fila["enfila"]((get_pos_x(), get_pos_y()))
 
 def verifica(x, y):
@@ -18,7 +18,7 @@ def verifica(x, y):
 		_fila["enfila"]((x, y))
 
 		if get_entity_type() == Entities.Dead_Pumpkin:
-			campo.cultiva_arado(Entities.Pumpkin)
+			campo.colhe_e_cultiva_arado(Entities.Pumpkin)
 
 def tarefa():
 	global _fila
