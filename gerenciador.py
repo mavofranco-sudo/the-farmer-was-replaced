@@ -44,11 +44,18 @@ def _buffer_power():
 	# minimo baseado em acoes por ciclo
 	acoes_por_ciclo = campo.n * campo.n * 3
 	minimo_base = acoes_por_ciclo // 30 + 50
-	# buffer = 10x o que esta em estoque agora, ou o minimo base, o que for maior
+	# teto: nao acumula mais do que 1 ciclo completo de girassol pode gerar
+	# evita objetivo impossivel quando nao ha cenouras
+	n = get_world_size()
+	teto = n * n * 50 + 500
+	# buffer ideal = 10x o estoque atual, limitado pelo teto
 	buffer_10x = num_items(Items.Power) * 10
-	if buffer_10x > minimo_base:
-		return buffer_10x
-	return minimo_base
+	melhor = minimo_base
+	if buffer_10x > melhor:
+		melhor = buffer_10x
+	if melhor > teto:
+		melhor = teto
+	return melhor
 
 def reabastece_power():
 	if not pode_produzir(Items.Power):
