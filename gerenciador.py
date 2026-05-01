@@ -26,54 +26,26 @@ def producao_segura(valor):
 	return valor
 
 def pode_produzir(recurso):
+	# Power precisa de Sunflowers desbloqueado
 	if recurso == Items.Power:
-		n = num_unlocked(Unlocks.Sunflowers)
-		if n <= 0:
-			print("    [debug] Sunflowers=" + str(n))
-			return False
-		return True
+		return num_unlocked(Unlocks.Sunflowers) > 0
+	# Bone precisa de Dinosaurs
 	if recurso == Items.Bone:
-		n = num_unlocked(Unlocks.Dinosaurs)
-		if n <= 0:
-			print("    [debug] Dinosaurs=" + str(n))
-			return False
-		return True
+		return num_unlocked(Unlocks.Dinosaurs) > 0
+	# Gold precisa de Mazes
 	if recurso == Items.Gold:
-		n = num_unlocked(Unlocks.Mazes)
-		if n <= 0:
-			print("    [debug] Mazes=" + str(n))
-			return False
-		return True
+		return num_unlocked(Unlocks.Mazes) > 0
+	# Cactus precisa de Cactus unlock
 	if recurso == Items.Cactus:
-		n = num_unlocked(Unlocks.Cactus)
-		if n <= 0:
-			print("    [debug] Cactus=" + str(n))
-			return False
-		return True
+		return num_unlocked(Unlocks.Cactus) > 0
+	# Pumpkin precisa de Pumpkins unlock
 	if recurso == Items.Pumpkin:
-		n = num_unlocked(Unlocks.Pumpkins)
-		if n <= 0:
-			print("    [debug] Pumpkins=" + str(n))
-			return False
-		return True
-	if recurso == Items.Wood:
-		n = num_unlocked(Unlocks.Trees)
-		if n <= 0:
-			print("    [debug] Trees=" + str(n))
-			return False
-		return True
+		return num_unlocked(Unlocks.Pumpkins) > 0
+	# Weird_Substance precisa de Trees (usa modo arvore especial)
 	if recurso == Items.Weird_Substance:
-		n = num_unlocked(Unlocks.Trees)
-		if n <= 0:
-			print("    [debug] Trees(ws)=" + str(n))
-			return False
-		return True
-	if recurso == Items.Carrot:
-		n = num_unlocked(Unlocks.Carrots)
-		if n <= 0:
-			print("    [debug] Carrots=" + str(n))
-			return False
-		return True
+		return num_unlocked(Unlocks.Trees) > 0
+	# Wood, Hay, Carrot podem ser produzidos sem unlock especifico
+	# (unlock so aumenta yield, nao e requisito)
 	return True
 
 def inicializa():
