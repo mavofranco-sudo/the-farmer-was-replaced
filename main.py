@@ -45,22 +45,35 @@ def _prepara_cenouras_para_abobora():
 		_noop
 	)(minimo)
 
-def _prepara_power():
-	# garante power antes de comecar cada mega-ciclo
+def _power_minimo_farm():
+	# power suficiente para 1 ciclo de aboboras: n² acoes * margem
+	n = get_world_size()
+	return n * n * 5 + 200
+
+def _prepara_power_farm():
+	# reabastece so o necessario para 1 ciclo - evita ficar farmando power em excesso
+	if not gerenciador.pode_produzir(Items.Power):
+		return
+	minimo = _power_minimo_farm()
+	if num_items(Items.Power) >= minimo:
+		return
 	if not girassol.tem_cenouras_suficientes():
 		_prepara_cenouras_para_abobora()
-	gerenciador.reabastece_power()
+	if girassol.tem_cenouras_suficientes():
+		print("  [farm] reabastecendo power ate " + str(minimo))
+		girassol.modo_girassol(minimo)
 
 def farm_aboboras_infinito(objetivo):
 	print(">>> MODO FARM: " + str(objetivo) + " aboboras")
 	ciclo = 0
 	while num_items(Items.Pumpkin) < objetivo:
 		ciclo += 1
-		_prepara_power()
 		_prepara_cenouras_para_abobora()
-		print("  [farm] ciclo=" + str(ciclo) +
-			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo) +
-			" power=" + str(num_items(Items.Power)))
+		_prepara_power_farm()
+		if ciclo % 100 == 1:
+			print("  [farm] ciclo=" + str(ciclo) +
+				" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo) +
+				" power=" + str(num_items(Items.Power)))
 		abobora.modo_abobora(num_items(Items.Pumpkin) + get_world_size() * get_world_size())
 	print(">>> OBJETIVO ATINGIDO: " + str(num_items(Items.Pumpkin)) + " aboboras")
 
