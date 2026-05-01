@@ -12,17 +12,11 @@ def inicializa(conquista=None):
 	if conquista == Unlocks.Expand:
 		campo.ara()
 
-def farma_custo(custo):
-	for recurso in custo:
-		objetivo = custo[recurso]
-		while num_items(recurso) < objetivo:
-			gerenciador.alcanca_objetivos({recurso: objetivo})
-
 def desbloqueia(conquista):
 	custo = get_cost(conquista)
 	if custo:
 		print(conquista)
-		farma_custo(custo)
+		gerenciador.farma_custo(custo)
 		unlock(conquista)
 		do_a_flip()
 		inicializa(conquista)
