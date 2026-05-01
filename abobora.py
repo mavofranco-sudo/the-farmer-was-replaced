@@ -37,42 +37,29 @@ def _trata_celula():
 				plant(Entities.Pumpkin)
 		campo._agua()
 
-def _colhe_e_replanta():
+def _colhe_celula_madura():
+	# fase 1: colhe APENAS aboboras maduras (garante bonus de colheita simultanea)
 	tipo = get_entity_type()
 	if tipo == Entities.Pumpkin and can_harvest():
 		harvest()
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-	elif tipo == Entities.Pumpkin:
-		campo._agua()
 	elif tipo == Entities.Dead_Pumpkin:
 		harvest()
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-	elif tipo == None:
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-	else:
+	elif tipo != None and tipo != Entities.Pumpkin:
 		if can_harvest():
 			harvest()
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
+
+def _replanta_celula():
+	# fase 2: ara e replanta tudo (campo deve estar limpo apos _colhe_celula_madura)
+	tipo = get_entity_type()
+	if tipo != None:
+		if can_harvest():
+			harvest()
+	if get_ground_type() != Grounds.Soil:
+		till()
+	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+		if num_unlocked(Unlocks.Plant):
+			plant(Entities.Pumpkin)
+	campo._agua()
 
 def _verifica_celula():
 	# cada drone marca _tem_problema se achou celula nao pronta
@@ -144,5 +131,8 @@ def modo_abobora(objetivo):
 		while not _todas_prontas_paralelo():
 			esperas += 1
 			megafazenda.paraleliza_blocos(_trata_celula)
-		print("    [abobora] pronto apos " + str(esperas) + " esperas")
-		megafazenda.paraleliza_blocos(_colhe_e_replanta)
+		print("    [abobora] pronto apos " + str(esperas) + " esperas, colhendo...")
+		# fase colheita: todos os drones colhem simultaneamente (garante bonus n²)
+		megafazenda.paraleliza_blocos(_colhe_celula_madura)
+		# fase replantio: ara e replanta (inclusive celulas que ficaram vazias)
+		megafazenda.paraleliza_blocos(_replanta_celula)
