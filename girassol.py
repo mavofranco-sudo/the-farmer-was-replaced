@@ -62,7 +62,6 @@ def _colhe_por_ordem():
 			harvest()
 
 def um_ciclo_girassol():
-	"""Planta, espera crescer e colhe um ciclo completo. Sem dependencia de gerenciador."""
 	megafazenda.paraleliza_blocos(_tarefa_plantio())
 	while not _campo_todo_crescido():
 		megafazenda.paraleliza_blocos(_tarefa_espera())
@@ -71,3 +70,4 @@ def um_ciclo_girassol():
 def modo_girassol(objetivo):
 	while num_items(Items.Power) < objetivo:
 		um_ciclo_girassol()
+
