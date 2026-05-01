@@ -45,27 +45,36 @@ def vota(x, y):
 	if not num_unlocked(Unlocks.Polyculture):
 		return
 
-	candidata, (x_candidata, y_candidata) = get_companion()
+	resultado = get_companion()
+	if resultado == None:
+		return
+	candidata = resultado[0]
+	pos = resultado[1]
+	x_candidata = pos[0]
+	y_candidata = pos[1]
 
 	if candidata not in _votos_pra_casa[(x_candidata, y_candidata)]:
 		return
 
-	if _voto_por_casa[(x, y)]:
-		candidata_anterior, x_candidata_anterior, y_candidata_anterior = _voto_por_casa[(x, y)]
+	voto_anterior = _voto_por_casa[(x, y)]
+	if voto_anterior != None:
+		candidata_anterior = voto_anterior[0]
+		x_candidata_anterior = voto_anterior[1]
+		y_candidata_anterior = voto_anterior[2]
 		if candidata_anterior in _votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)]:
 			_votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)][candidata_anterior] -= 1
-	_voto_por_casa[(x, y)] = (candidata, x_candidata, y_candidata)
+	_voto_por_casa[(x, y)] = [candidata, x_candidata, y_candidata]
 	_votos_pra_casa[(x_candidata, y_candidata)][candidata] += 1
 
 def cultiva_e_vota(planta):
 	def funcao():
 		global _fertilizante
 
-		x, y = get_pos_x(), get_pos_y()
+		x = get_pos_x()
+		y = get_pos_y()
 
 		vencedora = decide_planta(x, y, planta)
 
-		# grass e bush nao precisam de agua nem adubo - crescem rapido sozinhos
 		usa_consumivel = _fertilizante and vencedora not in _sem_consumivel
 
 		if vencedora == Entities.Carrot:
