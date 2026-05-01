@@ -6,25 +6,19 @@ _fertilizante = False
 _voto_por_casa = {}
 _votos_pra_casa = {}
 _plantas = [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]
-
 _sem_consumivel = [Entities.Grass, Entities.Bush]
 
 def cria_modo_policultura(recurso, planta):
 	def funcao(objetivo):
 		modo_policultura(recurso, planta, objetivo)
-
 	return funcao
 
 def cria_modo_policultura_com_reabastecimento(recurso, planta, reabastece):
 	def funcao(objetivo):
 		modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece)
-
 	return funcao
 
 def decide_planta(x, y, planta):
-	global _voto_por_casa
-	global _votos_pra_casa
-
 	if planta == Entities.Tree and x % 2 != y % 2:
 		planta = Entities.Bush
 
@@ -39,12 +33,8 @@ def decide_planta(x, y, planta):
 	return planta_vencedora
 
 def vota(x, y):
-	global _voto_por_casa
-	global _votos_pra_casa
-
 	if not num_unlocked(Unlocks.Polyculture):
 		return
-
 	resultado = get_companion()
 	if resultado == None:
 		return
@@ -66,30 +56,38 @@ def vota(x, y):
 	_voto_por_casa[(x, y)] = [candidata, x_candidata, y_candidata]
 	_votos_pra_casa[(x_candidata, y_candidata)][candidata] += 1
 
+def _cultiva_celula(planta):
+	global _fertilizante
+	x = get_pos_x()
+	y = get_pos_y()
+	vencedora = decide_planta(x, y, planta)
+	usa_consumivel = _fertilizante and vencedora not in _sem_consumivel
+
+	# sempre garante solo antes de plantar qualquer coisa
+	tipo_atual = get_entity_type()
+	if tipo_atual != None:
+		if can_harvest():
+			harvest()
+		else:
+			campo._agua()
+			return
+
+	# qualquer planta precisa de soil - nao deixa grassland nunca
+	campo.till_ate_soil()
+
+	if num_unlocked(Unlocks.Plant):
+		plant(vencedora)
+
+	campo._agua()
+	if usa_consumivel:
+		campo._fertiliza()
+
+	if vencedora == planta:
+		vota(x, y)
+
 def cultiva_e_vota(planta):
 	def funcao():
-		global _fertilizante
-
-		x = get_pos_x()
-		y = get_pos_y()
-
-		vencedora = decide_planta(x, y, planta)
-
-		usa_consumivel = _fertilizante and vencedora not in _sem_consumivel
-
-		if vencedora == Entities.Carrot:
-			campo.colhe_e_cultiva_arado(vencedora, usa_consumivel)
-		else:
-			campo.colhe_e_cultiva(vencedora, usa_consumivel)
-		if vencedora == planta:
-			vota(x, y)
-
-	return funcao
-
-def tarefa(planta):
-	def funcao():
-		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, cultiva_e_vota(planta))
-
+		_cultiva_celula(planta)
 	return funcao
 
 def inicializa_estado(recurso, planta):
@@ -98,8 +96,9 @@ def inicializa_estado(recurso, planta):
 	global _votos_pra_casa
 
 	_fertilizante = recurso == Items.Weird_Substance
-	for x in range(campo.n):
-		for y in range(campo.n):
+	tam = get_world_size()
+	for x in range(tam):
+		for y in range(tam):
 			_voto_por_casa[(x, y)] = None
 			_votos_pra_casa[(x, y)] = {}
 			for p in _plantas:
@@ -110,12 +109,12 @@ def inicializa_estado(recurso, planta):
 def modo_policultura(recurso, planta, objetivo):
 	inicializa_estado(recurso, planta)
 	while gerenciador.precisa(recurso, objetivo):
-		megafazenda.paraleliza_blocos(tarefa(planta))
+		megafazenda.paraleliza_blocos(cultiva_e_vota(planta))
 	campo.limpa()
 
 def modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece):
 	inicializa_estado(recurso, planta)
 	while gerenciador.precisa(recurso, objetivo):
 		reabastece()
-		megafazenda.paraleliza_blocos(tarefa(planta))
+		megafazenda.paraleliza_blocos(cultiva_e_vota(planta))
 	campo.limpa()
