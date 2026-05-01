@@ -7,6 +7,8 @@ _voto_por_casa = {}
 _votos_pra_casa = {}
 _plantas = [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]
 
+_sem_consumivel = [Entities.Grass, Entities.Bush]
+
 def cria_modo_policultura(recurso, planta):
 	def funcao(objetivo):
 		modo_policultura(recurso, planta, objetivo)
@@ -45,13 +47,11 @@ def vota(x, y):
 
 	candidata, (x_candidata, y_candidata) = get_companion()
 
-	# ignora se a candidata nao esta no dicionario de votos (ex: e a propria planta alvo)
 	if candidata not in _votos_pra_casa[(x_candidata, y_candidata)]:
 		return
 
 	if _voto_por_casa[(x, y)]:
 		candidata_anterior, x_candidata_anterior, y_candidata_anterior = _voto_por_casa[(x, y)]
-		# desfaz voto anterior apenas se ainda e valido
 		if candidata_anterior in _votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)]:
 			_votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)][candidata_anterior] -= 1
 	_voto_por_casa[(x, y)] = (candidata, x_candidata, y_candidata)
@@ -64,10 +64,14 @@ def cultiva_e_vota(planta):
 		x, y = get_pos_x(), get_pos_y()
 
 		vencedora = decide_planta(x, y, planta)
+
+		# grass e bush nao precisam de agua nem adubo - crescem rapido sozinhos
+		usa_consumivel = _fertilizante and vencedora not in _sem_consumivel
+
 		if vencedora == Entities.Carrot:
-			campo.colhe_e_cultiva_arado(vencedora, _fertilizante)
+			campo.colhe_e_cultiva_arado(vencedora, usa_consumivel)
 		else:
-			campo.colhe_e_cultiva(vencedora, _fertilizante)
+			campo.colhe_e_cultiva(vencedora, usa_consumivel)
 		if vencedora == planta:
 			vota(x, y)
 
