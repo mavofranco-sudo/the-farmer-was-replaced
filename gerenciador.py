@@ -48,9 +48,15 @@ def _cultivo_wood(objetivo):
 
 def _cultivo_carrot(objetivo):
 	buffer = campo.n * campo.n * 2 + 50
-	_cultivo_wood(buffer)
-	policultura.cria_modo_policultura(Items.Hay, Entities.Grass)(buffer)
-	policultura.cria_modo_policultura(Items.Carrot, Entities.Carrot)(objetivo)
+	tarefa = policultura.tarefa(Entities.Carrot)
+	policultura.inicializa_estado(Items.Carrot, Entities.Carrot)
+	while precisa(Items.Carrot, objetivo):
+		if num_items(Items.Wood) < buffer:
+			_cultivo_wood(buffer)
+		if num_items(Items.Hay) < buffer:
+			policultura.cria_modo_policultura(Items.Hay, Entities.Grass)(buffer)
+		megafazenda.paraleliza_blocos(tarefa)
+	campo.limpa()
 
 def inicializa():
 	global _ordem
