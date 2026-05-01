@@ -1,13 +1,15 @@
 _n_chapeus = 0
 _chapeus = []
 
+_chapeus_bloqueados = [Hats.Dinosaur_Hat]
+
 def inicializa():
 	global _n_chapeus
 	global _chapeus
 
 	_chapeus = []
 	for chapeu in Hats:
-		if chapeu == Hats.Dinosaur_Hat:
+		if chapeu in _chapeus_bloqueados:
 			continue
 		if num_unlocked(chapeu):
 			_chapeus.append(chapeu)
