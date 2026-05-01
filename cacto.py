@@ -39,6 +39,18 @@ def _espera_crescer():
 				if not can_harvest():
 					pronto = False
 
+def _acao_limpa():
+	def bloco():
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, _colhe_se_pronto)
+	return bloco
+
+def _colhe_se_pronto():
+	if get_entity_type() != None and can_harvest():
+		harvest()
+
+def _limpa_campo():
+	megafazenda.paraleliza_blocos(_acao_limpa())
+
 def _ordena_coluna(col):
 	trocou = True
 	while trocou:
@@ -66,15 +78,7 @@ def _ordena_campo():
 		for lin in range(campo.n):
 			_ordena_linha(lin)
 
-def _limpa_campo():
-	def acao():
-		if get_entity_type() != None:
-			if can_harvest():
-				harvest()
-	campo.movimento(acao)
-
 def _colhe_cactos_existentes():
-	# colhe qualquer cacto maduro que ja esteja no campo
 	def acao():
 		if get_entity_type() == Entities.Cactus and can_harvest():
 			harvest()
@@ -110,22 +114,16 @@ def _ciclo_com_n(n_celulas):
 
 def _reabastece_sementes():
 	n_celulas = campo.n * campo.n
-
-	# primeiro tenta colher cactos que ja estejam no campo
 	_colhe_cactos_existentes()
-
-	# se ainda zerado, nao tem como bootstrapar sem semente
 	if num_items(Items.Cactus) == 0:
 		print("    [erro] sem sementes de cacto - nao e possivel iniciar cultivo")
 		return
-
-	# ciclos crescentes ate ter sementes suficientes para o campo todo
 	while num_items(Items.Cactus) < n_celulas:
 		disponiveis = num_items(Items.Cactus)
 		if disponiveis == 0:
-			print("    [erro] sementes de cacto esgotaram durante reabastecimento")
+			print("    [erro] sementes esgotaram durante reabastecimento")
 			return
-		print("    [cacto] reabastecendo: " + str(disponiveis) + " sementes -> ciclo de " + str(disponiveis) + " celulas")
+		print("    [cacto] reabastecendo: " + str(disponiveis) + " sementes")
 		_ciclo_com_n(disponiveis)
 
 def _planta_campo():
@@ -146,7 +144,7 @@ def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
 		_reabastece_sementes()
 		if num_items(Items.Cactus) == 0:
-			print("    [cacto] sem sementes, abortando ciclo")
+			print("    [cacto] sem sementes, abortando")
 			return
 		_limpa_campo()
 		_planta_campo()
