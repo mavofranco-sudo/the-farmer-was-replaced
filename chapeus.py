@@ -20,7 +20,7 @@ def tem_chapeu():
 def usa():
 	if not tem_chapeu():
 		return
-	indice = int(_n_chapeus * random())
+	indice = _n_chapeus * random() // 1
 	change_hat(_chapeus[indice])
 
 def usa_e_faz(acao):
