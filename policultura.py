@@ -66,7 +66,7 @@ def tarefa(planta):
 
 	return funcao
 
-def modo_policultura(recurso, planta, objetivo):
+def inicializa_estado(recurso, planta):
 	global _fertilizante
 	global _voto_por_casa
 	global _votos_pra_casa
@@ -81,7 +81,8 @@ def modo_policultura(recurso, planta, objetivo):
 					continue
 				_votos_pra_casa[(x, y)][p] = 0
 
+def modo_policultura(recurso, planta, objetivo):
+	inicializa_estado(recurso, planta)
 	while gerenciador.precisa(recurso, objetivo):
 		megafazenda.paraleliza_blocos(tarefa(planta))
-
 	campo.limpa()
