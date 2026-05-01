@@ -1,4 +1,6 @@
 def teto_div(a, b):
+	if b == 0:
+		return 0
 	if a % b > 0:
 		return a // b + 1
 	return a // b
