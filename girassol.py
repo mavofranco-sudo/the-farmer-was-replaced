@@ -5,13 +5,15 @@ def _planta_celula():
 	tipo = get_entity_type()
 	if tipo == None:
 		if num_items(Items.Carrot) > 0:
-			campo.till_ate_soil()
+			if get_ground_type() != Grounds.Soil:
+				till()
 			plant(Entities.Sunflower)
 	elif tipo != Entities.Sunflower:
 		if can_harvest():
 			harvest()
 		if num_items(Items.Carrot) > 0:
-			campo.till_ate_soil()
+			if get_ground_type() != Grounds.Soil:
+				till()
 			plant(Entities.Sunflower)
 	campo._agua()
 
@@ -61,11 +63,24 @@ def tem_cenouras_suficientes():
 	return num_items(Items.Carrot) >= tam * tam
 
 def um_ciclo_girassol():
+	# sem cenouras nao tem como plantar - retorna False para indicar falha
+	if not tem_cenouras_suficientes():
+		return False
 	megafazenda.paraleliza_blocos(_planta_celula)
+	# se nao plantou nada (sem cenouras durante o ciclo), encerra
 	while not _campo_todo_crescido():
 		megafazenda.paraleliza_blocos(_rega_celula)
 	_colhe_por_ordem()
+	return True
 
 def modo_girassol(objetivo):
 	while num_items(Items.Power) < objetivo:
-		um_ciclo_girassol()
+		# sem cenouras: nao tem como gerar power agora, sai sem loop
+		if not tem_cenouras_suficientes():
+			print("    [girassol] sem cenouras suficientes, abortando (power=" +
+				str(num_items(Items.Power)) + " obj=" + str(objetivo) + ")")
+			return
+		ok = um_ciclo_girassol()
+		if not ok:
+			print("    [girassol] ciclo falhou, abortando")
+			return
