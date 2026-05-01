@@ -37,20 +37,7 @@ def movimento_linha(acao):
 		move(East)
 	acao()
 
-def movimento_bloco(num_linhas, num_colunas, acao):
-	# usa get_world_size() direto para nao depender de campo.n desatualizado
-	tam = get_world_size()
-	x0 = get_pos_x()
-	y0 = get_pos_y()
-	for col in range(num_colunas):
-		for lin in range(num_linhas):
-			tx = (x0 + col) % tam
-			ty = (y0 + lin) % tam
-			_vai_para_abs(tx, ty, tam)
-			acao()
-
 def _vai_para_abs(x_destino, y_destino, tam):
-	# navega usando get_world_size() direto, sem depender de campo.n
 	metade = tam // 2
 	x = get_pos_x()
 	y = get_pos_y()
@@ -81,41 +68,24 @@ def _vai_para_abs(x_destino, y_destino, tam):
 		for _ in range(-dy):
 			move(South)
 
-def _tarefa_ara():
-	def funcao():
-		def faz_till():
-			till()
-		movimento_bloco(megafazenda.linhas, megafazenda.colunas, faz_till)
-	return funcao
+# acoes diretas para paraleliza_blocos (sem aninhamento)
+def _faz_till():
+	till()
 
-def _tarefa_limpa():
-	def funcao():
-		def faz_colhe():
-			colhe()
-		movimento_bloco(megafazenda.linhas, megafazenda.colunas, faz_colhe)
-	return funcao
-
-def cria_movimento(acao):
-	def funcao():
-		movimento(acao)
-	return funcao
-
-def cria_movimento_linha(acao):
-	def funcao():
-		movimento_linha(acao)
-	return funcao
+def _faz_colhe():
+	colhe()
 
 def ara():
-	megafazenda.paraleliza_blocos(_tarefa_ara())
+	megafazenda.paraleliza_blocos(_faz_till)
+
+def limpa():
+	megafazenda.paraleliza_blocos(_faz_colhe)
 
 def colhe():
 	while get_entity_type() and not can_harvest():
 		_agua()
 	if get_entity_type():
 		harvest()
-
-def limpa():
-	megafazenda.paraleliza_blocos(_tarefa_limpa())
 
 def proximo(x, y, direcao, passos=1):
 	delta = deltas[direcao]
