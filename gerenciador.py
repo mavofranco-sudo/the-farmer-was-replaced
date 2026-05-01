@@ -25,6 +25,19 @@ def producao_segura(valor):
 		return 1
 	return valor
 
+def pode_produzir(recurso):
+	if recurso == Items.Power:
+		return num_unlocked(Unlocks.Sunflowers) > 0
+	if recurso == Items.Bone:
+		return num_unlocked(Unlocks.Dinosaurs) > 0
+	if recurso == Items.Gold:
+		return num_unlocked(Unlocks.Mazes) > 0
+	if recurso == Items.Cactus:
+		return num_unlocked(Unlocks.Cactus) > 0
+	if recurso == Items.Pumpkin:
+		return num_unlocked(Unlocks.Pumpkins) > 0
+	return True
+
 def inicializa():
 	global _ordem
 	global _recursos
@@ -115,6 +128,8 @@ def calcula_energia_rec(recurso, objetivo):
 	resposta = 0
 
 	if precisa(recurso, objetivo):
+		if not pode_produzir(recurso):
+			return 0
 		dados = _recursos[recurso]
 
 		objetivo_real = (objetivo - num_items(recurso))
@@ -152,8 +167,10 @@ def alcanca_objetivos_rec(recurso, objetivo):
 	global _recursos
 
 	if precisa(recurso, objetivo):
+		if not pode_produzir(recurso):
+			return
 		dados = _recursos[recurso]
-		
+
 		objetivo_real = (objetivo - num_items(recurso))
 		n_ciclos = util.teto_div(objetivo_real, dados["producao_ciclo"])
 		if dados["ciclo_inicio"]:
@@ -170,7 +187,9 @@ def alcanca_objetivos_rec(recurso, objetivo):
 def alcanca_objetivos(objetivos):
 	global _ordem
 
-	objetivos[Items.Power] = calcula_energia(objetivos)
+	energia = calcula_energia(objetivos)
+	if energia > 0 and pode_produzir(Items.Power):
+		objetivos[Items.Power] = energia
 
 	for recurso in _ordem:
 		if recurso not in objetivos:
