@@ -67,8 +67,8 @@ def inicializa():
 			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Grass) * campo.n * campo.n) // 2))
 		},
 		Items.Wood: {
-			"planta": Entities.Tree,
-			"cultivo": policultura.cria_modo_policultura(Items.Wood, Entities.Tree),
+			"planta": Entities.Bush if num_unlocked(Unlocks.Trees) == 0 else Entities.Tree,
+			"cultivo": policultura.cria_modo_policultura(Items.Wood, Entities.Bush) if num_unlocked(Unlocks.Trees) == 0 else policultura.cria_modo_policultura(Items.Wood, Entities.Tree),
 			"ciclo_inicio": True,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n,
