@@ -145,7 +145,8 @@ def colhe_e_cultiva(planta, fertilizante=False):
 
 def colhe_e_cultiva_arado(planta, fertilizante=False):
 	colhe()
-	till()
+	if get_ground_type() != Grounds.Soil:
+		till()
 	if num_unlocked(Unlocks.Plant):
 		plant(planta)
 	agua()
