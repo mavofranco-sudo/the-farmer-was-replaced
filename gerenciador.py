@@ -20,11 +20,18 @@ def nivel(conquista):
 def completada(conquista):
 	return not get_cost(conquista)
 
+def producao_segura(valor):
+	if valor <= 0:
+		return 1
+	return valor
+
 def inicializa():
 	global _ordem
 	global _recursos
 
 	dimensao = min(megafazenda.linhas, megafazenda.colunas)
+	if dimensao <= 0:
+		dimensao = 1
 
 	_ordem = [Items.Power, Items.Bone, Items.Gold, Items.Weird_Substance, Items.Cactus, Items.Pumpkin, Items.Carrot, Items.Wood, Items.Hay]
 	_recursos = {
@@ -34,7 +41,7 @@ def inicializa():
 			"ciclo_inicio": True,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n,
-			"producao_ciclo": (nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Grass) * campo.n * campo.n) // 2)
+			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Grass) * campo.n * campo.n) // 2))
 		},
 		Items.Wood: {
 			"planta": Entities.Tree,
@@ -42,7 +49,7 @@ def inicializa():
 			"ciclo_inicio": True,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n,
-			"producao_ciclo": (nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Trees) * 3 * campo.n * campo.n) // 2)
+			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Trees) * 3 * campo.n * campo.n) // 2))
 		},
 		Items.Carrot: {
 			"planta": Entities.Carrot,
@@ -50,7 +57,7 @@ def inicializa():
 			"ciclo_inicio": True,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n,
-			"producao_ciclo": (nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Carrots) * campo.n * campo.n) // 2)
+			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Carrots) * campo.n * campo.n) // 2))
 		},
 		Items.Pumpkin: {
 			"planta": Entities.Pumpkin,
@@ -58,7 +65,7 @@ def inicializa():
 			"ciclo_inicio": False,
 			"custo_ciclo": 2 * campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n * campo.n + campo.n * campo.n,
-			"producao_ciclo": nivel(Unlocks.Pumpkins) * campo.n * campo.n * min(campo.n, 6)
+			"producao_ciclo": producao_segura(nivel(Unlocks.Pumpkins) * campo.n * campo.n * min(campo.n, 6))
 		},
 		Items.Power: {
 			"planta": Entities.Sunflower,
@@ -66,7 +73,7 @@ def inicializa():
 			"ciclo_inicio": False,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n,
-			"producao_ciclo": (nivel(Unlocks.Sunflowers) * 5 * ((campo.n * campo.n) - 9) + 9) - (campo.n * campo.n)
+			"producao_ciclo": producao_segura((nivel(Unlocks.Sunflowers) * 5 * ((campo.n * campo.n) - 9) + 9) - (campo.n * campo.n))
 		},
 		Items.Cactus: {
 			"planta": Entities.Cactus,
@@ -74,7 +81,7 @@ def inicializa():
 			"ciclo_inicio": False,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": (campo.n * campo.n * campo.n) + (campo.n * (campo.n * campo.n) // 2),
-			"producao_ciclo": nivel(Unlocks.Cactus) * (campo.n * campo.n)**2
+			"producao_ciclo": producao_segura(nivel(Unlocks.Cactus) * (campo.n * campo.n)**2)
 		},
 		Items.Weird_Substance: {
 			"planta": Entities.Tree,
@@ -82,7 +89,7 @@ def inicializa():
 			"ciclo_inicio": True,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": campo.n * campo.n,
-			"producao_ciclo": (nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Trees) * 3 * campo.n * campo.n) // 2)
+			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Trees) * 3 * campo.n * campo.n) // 2))
 		},
 		Items.Gold: {
 			"planta": Entities.Treasure,
@@ -90,7 +97,7 @@ def inicializa():
 			"ciclo_inicio": False,
 			"custo_ciclo": 301 * megafazenda.n_drones * dimensao,
 			"custo_energia_ciclo": 301 * megafazenda.n_drones * ((dimensao * dimensao) // 2),
-			"producao_ciclo": 301 * nivel(Unlocks.Mazes) * megafazenda.n_drones * dimensao * dimensao
+			"producao_ciclo": producao_segura(301 * nivel(Unlocks.Mazes) * megafazenda.n_drones * dimensao * dimensao)
 		},
 		Items.Bone: {
 			"planta": Entities.Apple,
@@ -98,7 +105,7 @@ def inicializa():
 			"ciclo_inicio": False,
 			"custo_ciclo": campo.n * campo.n,
 			"custo_energia_ciclo": 2 * campo.n * campo.n * campo.n,
-			"producao_ciclo": nivel(Unlocks.Dinosaurs) * (campo.n * campo.n)**2
+			"producao_ciclo": producao_segura(nivel(Unlocks.Dinosaurs) * (campo.n * campo.n)**2)
 		}
 }
 
