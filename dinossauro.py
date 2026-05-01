@@ -99,7 +99,10 @@ def _serpentina():
 		if lin < campo.n - 1:
 			if not move(North):
 				return
-			direcao_h = West if direcao_h == East else East
+			if direcao_h == East:
+				direcao_h = West
+			else:
+				direcao_h = East
 
 def _ciclo_dino():
 	campo.vai_para(0, 0)
