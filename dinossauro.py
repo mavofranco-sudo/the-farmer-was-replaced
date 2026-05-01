@@ -1,6 +1,5 @@
 import campo
 import gerenciador
-import megafazenda
 import fila
 
 _x_maca = 0
@@ -108,20 +107,19 @@ def _serpentina():
 			else:
 				direcao_h = East
 
-def _tarefa_dino():
-	def funcao():
-		if _hat_dino[0] != None:
-			change_hat(_hat_dino[0])
+def _ciclo_dino():
+	campo.vai_para(0, 0)
+	if _hat_dino[0] != None:
+		change_hat(_hat_dino[0])
 
-		if _atualiza_maca():
-			_vai_para_maca()
-		else:
-			_serpentina()
+	if _atualiza_maca():
+		_vai_para_maca()
+	else:
+		_serpentina()
 
-		if _hat_normal[0] != None:
-			change_hat(_hat_normal[0])
-	return funcao
+	if _hat_normal[0] != None:
+		change_hat(_hat_normal[0])
 
 def modo_dinossauro(objetivo):
 	while gerenciador.precisa(Items.Bone, objetivo):
-		megafazenda.paraleliza_blocos(_tarefa_dino())
+		_ciclo_dino()
