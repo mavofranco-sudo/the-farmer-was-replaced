@@ -27,9 +27,33 @@ def _tarefa_planta_e_cuida():
 		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, trata_celula)
 	return funcao
 
+def _conta_campo():
+	tam = get_world_size()
+	total = 0
+	prontas = 0
+	vazias = 0
+	mortas = 0
+	crescendo = 0
+	for i in range(tam):
+		for j in range(tam):
+			campo.vai_para(i, j)
+			tipo = get_entity_type()
+			total += 1
+			if tipo == None:
+				vazias += 1
+			elif tipo == Entities.Dead_Pumpkin:
+				mortas += 1
+			elif tipo == Entities.Pumpkin:
+				if can_harvest():
+					prontas += 1
+				else:
+					crescendo += 1
+	return [total, prontas, crescendo, mortas, vazias]
+
 def _todas_prontas():
-	for i in range(get_world_size()):
-		for j in range(get_world_size()):
+	tam = get_world_size()
+	for i in range(tam):
+		for j in range(tam):
 			campo.vai_para(i, j)
 			tipo = get_entity_type()
 			if tipo == None:
@@ -72,17 +96,27 @@ def _reabastece_insumos():
 		)(minimo_cenouras)
 
 def modo_abobora(objetivo):
-	# reinicializa sempre que chamado para pegar campo atual
 	campo.inicializa()
 	megafazenda.inicializa()
 	campo.ara()
+	ciclo = 0
 	while num_items(Items.Pumpkin) < objetivo:
-		# reinicializa no inicio de cada ciclo para detectar Expand
+		ciclo += 1
 		campo.inicializa()
 		megafazenda.inicializa()
+		print("    [abobora] ciclo=" + str(ciclo) + " n=" + str(get_world_size()) +
+			" bloco=" + str(megafazenda.colunas) + "x" + str(megafazenda.linhas) +
+			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
 		megafazenda.paraleliza_blocos(_tarefa_planta_e_cuida())
+		contagem = _conta_campo()
+		print("    [abobora] apos plantar: total=" + str(contagem[0]) +
+			" prontas=" + str(contagem[1]) + " crescendo=" + str(contagem[2]) +
+			" mortas=" + str(contagem[3]) + " vazias=" + str(contagem[4]))
+		espera = 0
 		while not _todas_prontas():
+			espera += 1
 			megafazenda.paraleliza_blocos(_tarefa_planta_e_cuida())
+		print("    [abobora] campo pronto apos " + str(espera) + " esperas")
 		megafazenda.paraleliza_blocos(_tarefa_colhe_tudo())
 		campo.ara()
