@@ -5,30 +5,42 @@ import megafazenda
 
 _fila = None
 
+# FASE 1: planta em todas as celulas (primeira vez)
 def inicializa():
 	global _fila
 
-	campo.colhe_e_cultiva_arado(Entities.Pumpkin)
+	campo.cultiva_arado(Entities.Pumpkin)
 	_fila["enfila"]((get_pos_x(), get_pos_y()))
 
-def verifica(x, y):
+# FASE 2: percorre o campo checando mortas e nao prontas
+# Retorna True se todas estao prontas pra colher (can_harvest)
+def _verifica_celula(x, y):
 	global _fila
 
-	if get_entity_type() == Entities.Dead_Pumpkin:
+	tipo = get_entity_type()
+	if tipo == Entities.Dead_Pumpkin:
+		# replanta em cima da morta (remove automaticamente)
 		campo.cultiva_arado(Entities.Pumpkin)
+		_fila["enfila"]((x, y))
 	elif not can_harvest():
+		# ainda crescendo, volta pra fila
 		_fila["enfila"]((x, y))
 
-def tarefa():
+def _aguarda_e_replanta():
 	global _fila
 
 	_fila = fila.inicializa()
 	campo.movimento_linha(inicializa)
 
+	# loop ate todas estarem prontas
 	while not _fila["vazia"]():
 		x, y = _fila["desenfila"]()
 		campo.vai_para(x, y)
-		verifica(x, y)
+		_verifica_celula(x, y)
+
+# FASE 3: colhe a mega abobora (uma unica harvest no campo inteiro)
+def _colhe_mega():
+	campo.movimento_linha(harvest)
 
 def _reabastece():
 	custo_por_semente = 512
@@ -45,5 +57,6 @@ def _reabastece():
 def modo_abobora(objetivo):
 	while gerenciador.precisa(Items.Pumpkin, objetivo):
 		_reabastece()
-		megafazenda.paraleliza_linha(tarefa)
-		harvest()
+		megafazenda.paraleliza_linha(_aguarda_e_replanta)
+		_colhe_mega()
+
