@@ -47,7 +47,6 @@ def _cultivo_wood(objetivo):
 		policultura.cria_modo_policultura(Items.Wood, Entities.Tree)(objetivo)
 
 def _cultivo_carrot(objetivo):
-	campo.ara()
 	policultura.cria_modo_policultura(Items.Carrot, Entities.Carrot)(objetivo)
 
 def inicializa():
