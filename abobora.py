@@ -25,7 +25,44 @@ def _trata_celula():
 		if not can_harvest():
 			campo._agua()
 	else:
-		# qualquer outra entidade (grama, arbusto, etc): colhe/limpa e ara
+		if can_harvest():
+			harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+
+def _colhe_e_replanta():
+	# colhe abobora madura e replanta imediatamente
+	tipo = get_entity_type()
+	if tipo == Entities.Pumpkin and can_harvest():
+		harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+	elif tipo == Entities.Pumpkin:
+		campo._agua()
+	elif tipo == Entities.Dead_Pumpkin:
+		harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+	elif tipo == None:
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+	else:
 		if can_harvest():
 			harvest()
 		if get_ground_type() != Grounds.Soil:
@@ -43,7 +80,6 @@ def _ara_celula():
 	till()
 
 def _limpa_nao_abobora():
-	# colhe qualquer coisa que nao seja abobora (residuos de grass/tree/etc)
 	tipo = get_entity_type()
 	if tipo == None:
 		return
@@ -51,6 +87,21 @@ def _limpa_nao_abobora():
 		return
 	if can_harvest():
 		harvest()
+
+def _conta_problemas():
+	# conta celulas que ainda nao estao prontas (sem pumpkin plantada ou morta)
+	# usa paralelismo dos drones via megafazenda
+	problemas = [0]
+	tam = get_world_size()
+	for i in range(tam):
+		for j in range(tam):
+			campo.vai_para(i, j)
+			tipo = get_entity_type()
+			if tipo == None:
+				problemas[0] += 1
+			elif tipo == Entities.Dead_Pumpkin:
+				problemas[0] += 1
+	return problemas[0]
 
 def _todas_prontas():
 	tam = get_world_size()
@@ -92,7 +143,6 @@ def _reabastece_insumos():
 def modo_abobora(objetivo):
 	campo.inicializa()
 	megafazenda.inicializa()
-	# limpa residuos antes de comecar (grama, arbustos, etc de ciclos anteriores)
 	megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 	megafazenda.paraleliza_blocos(_ara_celula)
 	ciclo = 0
@@ -103,7 +153,6 @@ def modo_abobora(objetivo):
 		print("    [abobora] ciclo=" + str(ciclo) + " n=" + str(get_world_size()) +
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
-		# limpa residuos que o reabastecimento pode ter deixado
 		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 		megafazenda.paraleliza_blocos(_trata_celula)
 		esperas = 0
@@ -111,5 +160,5 @@ def modo_abobora(objetivo):
 			esperas += 1
 			megafazenda.paraleliza_blocos(_trata_celula)
 		print("    [abobora] pronto apos " + str(esperas) + " esperas")
-		megafazenda.paraleliza_blocos(_colhe_celula)
-		megafazenda.paraleliza_blocos(_ara_celula)
+		# colhe e replanta imediatamente (sem passar por _ara_celula separado)
+		megafazenda.paraleliza_blocos(_colhe_e_replanta)
