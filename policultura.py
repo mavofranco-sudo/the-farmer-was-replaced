@@ -65,39 +65,30 @@ def _precisa_de_soil(planta):
 			return True
 	return False
 
-def _regenera_solo_celula():
-	# colhe o que tiver e nao faz till - deixa solo como Grassland
-	if get_entity_type() != None and can_harvest():
-		harvest()
+def _regenera_solo_paralelo():
+	# fase 1: colhe tudo e planta Grass onde o solo eh Soil
+	def _celula_fase1():
+		if get_entity_type() != None and can_harvest():
+			harvest()
+		if get_ground_type() == Grounds.Soil:
+			plant(Entities.Grass)
+			campo._agua()
+	megafazenda.paraleliza_blocos(_celula_fase1)
 
-def _regenera_solo_campo():
-	# varre o campo colhendo tudo sem fazer till
-	# isso desfaz qualquer Soil residual plantando/colhendo Grass
-	tam = get_world_size()
-	for x in range(tam):
-		for y in range(tam):
-			campo.vai_para(x, y)
-			# se tem planta, colhe
-			if get_entity_type() != None and can_harvest():
+	# fase 2: aguarda e colhe a Grass plantada (repete ate nao ter nada pendente)
+	pendente = [True]
+	while pendente[0]:
+		pendente[0] = False
+		def _celula_fase2():
+			tipo = get_entity_type()
+			if tipo == None:
+				return
+			if can_harvest():
 				harvest()
-			# se solo e Soil, planta Grass para regenerar
-			if get_ground_type() == Grounds.Soil:
-				plant(Entities.Grass)
-
-	# segundo passo: colhe as Grass que plantamos
-	precisa_mais = True
-	while precisa_mais:
-		precisa_mais = False
-		for x in range(tam):
-			for y in range(tam):
-				campo.vai_para(x, y)
-				tipo = get_entity_type()
-				if tipo != None:
-					if can_harvest():
-						harvest()
-					else:
-						precisa_mais = True
-						campo._agua()
+			else:
+				campo._agua()
+				pendente[0] = True
+		megafazenda.paraleliza_blocos(_celula_fase2)
 
 def _cultiva_celula(planta):
 	global _fertilizante
@@ -117,8 +108,7 @@ def _cultiva_celula(planta):
 	if _precisa_de_soil(vencedora):
 		if get_ground_type() != Grounds.Soil:
 			till()
-	# Grassland: nao faz till, planta diretamente
-	# se solo ainda for Soil, nao planta (sera resolvido pelo proximo ciclo apos regeneracao)
+	# Grassland: nao faz till - se solo for Soil nao planta (campo foi regenerado antes)
 
 	if num_unlocked(Unlocks.Plant):
 		plant(vencedora)
@@ -152,7 +142,6 @@ def inicializa_estado(recurso, planta):
 				_votos_pra_casa[(x, y)][p] = 0
 
 def _precisa_grassland(planta):
-	# verifica se a planta precisa de Grassland (nao Soil)
 	if planta == Entities.Grass:
 		return True
 	if planta == Entities.Bush:
@@ -162,11 +151,14 @@ def _precisa_grassland(planta):
 	return False
 
 def modo_policultura(recurso, planta, objetivo):
+	# reinicializa dimensoes (campo pode ter expandido)
+	campo.inicializa()
+	megafazenda.inicializa()
 	inicializa_estado(recurso, planta)
-	# se planta precisa de Grassland, regenera o solo antes
+	# se planta precisa de Grassland, regenera solo antes com paralelismo
 	if _precisa_grassland(planta):
 		print("    [poli] regenerando solo para " + str(planta))
-		_regenera_solo_campo()
+		_regenera_solo_paralelo()
 	ciclo = 0
 	while gerenciador.precisa(recurso, objetivo):
 		ciclo += 1
@@ -180,10 +172,12 @@ def modo_policultura(recurso, planta, objetivo):
 	campo.limpa()
 
 def modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece):
+	campo.inicializa()
+	megafazenda.inicializa()
 	inicializa_estado(recurso, planta)
 	if _precisa_grassland(planta):
 		print("    [poli] regenerando solo para " + str(planta))
-		_regenera_solo_campo()
+		_regenera_solo_paralelo()
 	ciclo = 0
 	while gerenciador.precisa(recurso, objetivo):
 		ciclo += 1
