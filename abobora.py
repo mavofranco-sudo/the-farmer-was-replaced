@@ -32,11 +32,9 @@ def tarefa():
 		verifica(x, y)
 
 def _reabastece():
-	buffer = campo.n * campo.n + 50
-	if num_items(Items.Wood) < buffer:
-		gerenciador.farma_recurso(Items.Wood, buffer)
-	if num_items(Items.Hay) < buffer:
-		gerenciador.farma_recurso(Items.Hay, buffer)
+	buffer = campo.n * campo.n * 512 + 512
+	if num_items(Items.Carrot) < buffer:
+		gerenciador.farma_recurso(Items.Carrot, buffer)
 
 def modo_abobora(objetivo):
 	while gerenciador.precisa(Items.Pumpkin, objetivo):
