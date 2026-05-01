@@ -19,12 +19,22 @@ def inicializa():
 	n_drones = max_drones()
 
 	drones_por_linha = util.sqrt_2(n_drones)
+	if drones_por_linha < 1:
+		drones_por_linha = 1
+
 	drones_por_coluna = n_drones // drones_por_linha
+	if drones_por_coluna < 1:
+		drones_por_coluna = 1
 
 	linhas = campo.n // drones_por_linha
+	if linhas < 1:
+		linhas = 1
+
 	colunas = campo.n // drones_por_coluna
 	if colunas % 2 == 1:
 		colunas -= 1
+	if colunas < 1:
+		colunas = 1
 
 	_limite_linhas = linhas * drones_por_linha
 	_limite_colunas = colunas * drones_por_coluna
