@@ -22,6 +22,14 @@ def _measure_safe(direcao=None):
 		return 0
 	return val
 
+def _pode_swap(direcao):
+	x, y = get_pos_x(), get_pos_y()
+	dx, dy = campo.deltas[direcao]
+	nx = (x + dx) % campo.n
+	ny = (y + dy) % campo.n
+	# se a proxima posicao e diferente da atual, esta dentro dos limites
+	return nx != x or ny != y
+
 def insertion_sort(direcao, planta=False):
 	x, y = get_pos_x(), get_pos_y()
 
@@ -36,6 +44,8 @@ def insertion_sort(direcao, planta=False):
 
 		j = i
 		while j > 0 and _measure_safe(direcao) > _measure_safe():
+			if not _pode_swap(direcao):
+				break
 			swap(direcao)
 			move(direcao)
 			j -= 1
