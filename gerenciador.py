@@ -60,11 +60,21 @@ def _buffer_power():
 def reabastece_power():
 	if not pode_produzir(Items.Power):
 		return
-	minimo = _buffer_power()
-	if num_items(Items.Power) >= minimo:
-		return
 	if not girassol.tem_cenouras_suficientes():
 		print("    [power] sem cenouras suficientes, pulando reabastecimento")
+		return
+	# power zerado: recarga emergencial imediata
+	power_atual = num_items(Items.Power)
+	if power_atual <= 0:
+		minimo_urgente = _buffer_power()
+		if minimo_urgente < 100:
+			minimo_urgente = 100
+		print("    [power] ZERO! emergencia ate " + str(minimo_urgente))
+		girassol.modo_girassol(minimo_urgente)
+		print("    [power] ok = " + str(num_items(Items.Power)))
+		return
+	minimo = _buffer_power()
+	if num_items(Items.Power) >= minimo:
 		return
 	print("    [power] abaixo do buffer (" + str(num_items(Items.Power)) + "/" + str(minimo) + "), reabastecendo...")
 	girassol.modo_girassol(minimo)
@@ -168,4 +178,5 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
+
 
