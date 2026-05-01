@@ -2,26 +2,38 @@ import campo
 import chapeus
 import gerenciador
 
-_tudo_bem = True
+def _pode_mover(direcao):
+	return can_move(direcao)
 
-def verifica():
-	global _tudo_bem
-
+def _campo_cheio():
+	# se nao consegue mover em nenhuma direcao, cobra tomou tudo
 	for direcao in campo.direcoes:
 		if can_move(direcao):
-			return
+			return False
+	return True
 
-	_tudo_bem = False
+def _serpentina():
+	# percorre o campo em serpentina (linha por linha, alternando direcao)
+	# garante cobertura total - padrao otimo para cobra
+	direcao_h = East
+	for lin in range(campo.n):
+		# anda horizontalmente pela linha
+		for _ in range(campo.n - 1):
+			if not move(direcao_h):
+				return  # bloqueado pela cauda = campo cheio
+		# sobe para proxima linha (se nao for a ultima)
+		if lin < campo.n - 1:
+			if not move(North):
+				return
+			direcao_h = West if direcao_h == East else East
+
+def _ciclo_dino():
+	campo.vai_para(0, 0)
+	change_hat(Hats.Dinosaur_Hat)
+	_serpentina()
+	# troca o chapeu para colher os ossos (cauda vira ossos ao desequipar)
+	chapeus.usa()
 
 def modo_dinossauro(objetivo):
-	global _tudo_bem
-
 	while gerenciador.precisa(Items.Bone, objetivo):
-		campo.vai_para(0, 0)
-		change_hat(Hats.Dinosaur_Hat)
-
-		_tudo_bem = True
-		while _tudo_bem:
-			campo.movimento_bloco(campo.n, campo.n, verifica)
-
-		chapeus.usa()
+		_ciclo_dino()
