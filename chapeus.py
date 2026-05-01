@@ -2,7 +2,7 @@ def inicializa():
 	pass
 
 def usa():
-	change_hat(Hats.Farmer_Hat)
+	change_hat(Hats.Straw_Hat)
 
 def usa_e_faz(acao):
 	def funcao():
