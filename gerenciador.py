@@ -44,10 +44,10 @@ def _buffer_power():
 	# minimo baseado em acoes por ciclo
 	acoes_por_ciclo = campo.n * campo.n * 3
 	minimo_base = acoes_por_ciclo // 30 + 50
-	# teto: nao acumula mais do que 1 ciclo completo de girassol pode gerar
-	# evita objetivo impossivel quando nao ha cenouras
+	# teto: suficiente para 1 ciclo de plantio (n²*3 acoes + margem)
+	# evita objetivo impossivel e farm desnecessario de girassol
 	n = get_world_size()
-	teto = n * n * 50 + 500
+	teto = n * n * 3 + 200
 	# buffer ideal = 10x o estoque atual, limitado pelo teto
 	buffer_10x = num_items(Items.Power) * 10
 	melhor = minimo_base
@@ -178,5 +178,6 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
+
 
 
