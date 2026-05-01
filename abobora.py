@@ -53,10 +53,13 @@ def _colhe_mega():
 	campo.movimento(harvest)
 
 def _reabastece():
+	# cada celula do campo precisa de 1 semente = 512 cenouras
+	n_celulas = campo.n * campo.n
 	custo_por_semente = 512
-	minimo_cenouras = custo_por_semente + 50
-	custo_wood = minimo_cenouras * 2 + 50
-	custo_hay = minimo_cenouras * 2 + 50
+	margem = n_celulas * 2 + 100
+	minimo_cenouras = custo_por_semente * n_celulas + margem
+	custo_wood = minimo_cenouras * 2 + margem
+	custo_hay = minimo_cenouras * 2 + margem
 	if num_items(Items.Wood) < custo_wood:
 		gerenciador.farma_recurso(Items.Wood, custo_wood)
 	if num_items(Items.Hay) < custo_hay:
