@@ -22,44 +22,58 @@ def _measure_safe(direcao=None):
 		return 0
 	return val
 
-def _pode_swap(direcao):
-	x, y = get_pos_x(), get_pos_y()
-	dx, dy = campo.deltas[direcao]
-	nx = (x + dx) % campo.n
-	ny = (y + dy) % campo.n
-	# se a proxima posicao e diferente da atual, esta dentro dos limites
-	return nx != x or ny != y
+def _rega_celula():
+	if num_items(Items.Water) > 0:
+		use_item(Items.Water)
 
-def insertion_sort(direcao, planta=False):
-	x, y = get_pos_x(), get_pos_y()
+def _ordena_coluna(col):
+	trocou = True
+	while trocou:
+		trocou = False
+		for j in range(campo.n - 1):
+			campo.vai_para(col, j)
+			if _measure_safe() > _measure_safe(North):
+				swap(North)
+				trocou = True
 
-	if planta:
+def _ordena_linha(lin):
+	trocou = True
+	while trocou:
+		trocou = False
+		for j in range(campo.n - 1):
+			campo.vai_para(j, lin)
+			if _measure_safe() > _measure_safe(East):
+				swap(East)
+				trocou = True
+
+def _ordena_campo():
+	for _ in range(campo.n):
+		for col in range(campo.n):
+			_ordena_coluna(col)
+		for lin in range(campo.n):
+			_ordena_linha(lin)
+
+def _planta_campo():
+	def acao():
 		_planta_cacto()
+	campo.movimento(acao)
 
-	for i in range(1, campo.n):
-		x_proximo, y_proximo = campo.proximo(x, y, campo.opostos[direcao], i)
-		campo.vai_para(x_proximo, y_proximo)
-		if planta:
-			_planta_cacto()
-
-		j = i
-		while j > 0 and _measure_safe(direcao) > _measure_safe():
-			if not _pode_swap(direcao):
-				break
-			swap(direcao)
-			move(direcao)
-			j -= 1
-
-def cria_insertion_sort(direcao, planta=False):
-	def funcao():
-		insertion_sort(direcao, planta)
-
-	return funcao
+def _espera_crescer():
+	# loop: rega tudo e verifica se todos podem ser colhidos
+	pronto = False
+	while not pronto:
+		pronto = True
+		for x in range(campo.n):
+			for y in range(campo.n):
+				campo.vai_para(x, y)
+				_rega_celula()
+				if not can_harvest():
+					pronto = False
 
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
-		megafazenda.paraleliza_linha(cria_insertion_sort(West, True))
-		megafazenda.paraleliza_linha(cria_insertion_sort(South, False))
-
+		_planta_campo()
+		_espera_crescer()
+		_ordena_campo()
 		campo.vai_para(0, 0)
 		harvest()
