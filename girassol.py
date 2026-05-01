@@ -1,59 +1,60 @@
 import campo
-import chapeus
 import gerenciador
-import megafazenda
 
-_girassois = {}
+def _planta_campo():
+	for x in range(campo.n):
+		for y in range(campo.n):
+			campo.vai_para(x, y)
+			if get_entity_type() == None:
+				till()
+				plant(Entities.Sunflower)
+			elif get_entity_type() != Entities.Sunflower:
+				if can_harvest():
+					harvest()
+				till()
+				plant(Entities.Sunflower)
 
-def inicializa():
-	global _girassois
+def _espera_crescer():
+	pronto = False
+	while not pronto:
+		pronto = True
+		for x in range(campo.n):
+			for y in range(campo.n):
+				campo.vai_para(x, y)
+				if get_entity_type() == Entities.Sunflower and not can_harvest():
+					pronto = False
 
-	campo.cultiva(Entities.Sunflower)
-	_girassois[measure()].add((get_pos_x(), get_pos_y()))
+def _colhe_por_ordem():
+	# coleta petalas de cada celula
+	petalas = []
+	for x in range(campo.n):
+		for y in range(campo.n):
+			campo.vai_para(x, y)
+			if get_entity_type() == Entities.Sunflower and can_harvest():
+				p = measure()
+				if p == None:
+					p = 7
+				petalas.append([p, x, y])
 
-def tarefa_plantio():
-	global _girassois
+	# ordena decrescente por petalas (insertion sort)
+	for i in range(1, len(petalas)):
+		chave = petalas[i]
+		j = i - 1
+		while j >= 0 and petalas[j][0] < chave[0]:
+			petalas[j + 1] = petalas[j]
+			j -= 1
+		petalas[j + 1] = chave
 
-	campo.movimento_linha(inicializa)
-	return _girassois
-
-def constroi_resultados(resultados):
-	global _girassois
-
-	for resultado in resultados:
-		for i in range(7, 16):
-			for x, y in resultado[i]:
-				_girassois[i].add((x, y))
-
-def tarefa_colheita(x, y):
-	def funcao():
+	# colhe na ordem certa (maior primeiro)
+	for item in petalas:
+		x = item[1]
+		y = item[2]
 		campo.vai_para(x, y)
-		campo.colhe()
-
-	return chapeus.usa_e_faz(funcao)
+		if get_entity_type() == Entities.Sunflower and can_harvest():
+			harvest()
 
 def modo_girassol(objetivo):
-	global _girassois
-
-	for i in range(7, 16):
-		_girassois[i] = set()
-
 	while gerenciador.precisa(Items.Power, objetivo):
-		resultados = megafazenda.paraleliza_linha(tarefa_plantio)
-		constroi_resultados(resultados)
-
-		for i in range(15, 6, -1):
-			drones = []
-
-			for x, y in _girassois[i]:
-				campo.vai_para(campo.metade_n, campo.metade_n)
-
-				drone = None
-				while not drone:
-					drone = spawn_drone(tarefa_colheita(x, y))
-				drones.append(drone)
-
-			for drone in drones:
-				wait_for(drone)
-
-			_girassois[i] = set()
+		_planta_campo()
+		_espera_crescer()
+		_colhe_por_ordem()
