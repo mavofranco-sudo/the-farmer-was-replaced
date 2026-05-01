@@ -31,6 +31,9 @@ def desbloqueia(conquista):
 		inicializa(conquista)
 		print("<<< concluido: " + str(conquista))
 
+def _noop():
+	pass
+
 def _prepara_cenouras_para_abobora():
 	# garante cenouras suficientes para um ciclo completo de aboboras
 	n = get_world_size()
@@ -39,7 +42,7 @@ def _prepara_cenouras_para_abobora():
 		return
 	policultura.cria_modo_policultura_com_reabastecimento(
 		Items.Carrot, Entities.Carrot,
-		lambda: None
+		_noop
 	)(minimo)
 
 def _prepara_power():
