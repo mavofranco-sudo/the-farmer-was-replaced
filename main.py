@@ -29,30 +29,30 @@ inicializa()
 chapeus.usa()
 
 ordem = [
-	# fase inicial: velocidade e expansao basica
+	# fase 1: base
 	Unlocks.Speed,
 	Unlocks.Plant,
-	Unlocks.Grass,          # multiplicador de hay desde cedo
+	Unlocks.Grass,          # multiplicador hay nivel 1
 	Unlocks.Expand,
 	Unlocks.Expand,
 	Unlocks.Speed,
-	Unlocks.Grass,          # nivel 2 de grass
+	Unlocks.Grass,          # multiplicador hay nivel 2
+	Unlocks.Carrots,        # OBRIGATORIO antes de Trees (Trees custa cenoura)
 	Unlocks.Trees,
-	Unlocks.Trees,          # multiplicador de wood/weird
-	Unlocks.Carrots,
-	Unlocks.Carrots,        # multiplicador de cenoura
+	Unlocks.Trees,          # multiplicador wood nivel 2
+	Unlocks.Carrots,        # multiplicador cenoura nivel 2
 	Unlocks.Expand,
 	Unlocks.Speed,
 	Unlocks.Expand,
 	Unlocks.Watering,
 	Unlocks.Watering,
-	Unlocks.Watering,       # nivel 3 de watering
-	Unlocks.Grass,          # nivel 3 de grass
-	Unlocks.Carrots,        # nivel 3 de cenoura
+	Unlocks.Watering,       # nivel 3
+	Unlocks.Grass,          # nivel 3
+	Unlocks.Carrots,        # nivel 3
 	Unlocks.Sunflowers,
 	Unlocks.Fertilizer,
-	Unlocks.Fertilizer,     # nivel 2 de fertilizer
-	Unlocks.Watering,       # nivel 4 de watering
+	Unlocks.Fertilizer,     # nivel 2
+	Unlocks.Watering,       # nivel 4
 	Unlocks.Speed,
 	Unlocks.Pumpkins,
 	Unlocks.Watering,       # nivel 5
@@ -60,7 +60,7 @@ ordem = [
 	Unlocks.Speed,
 	Unlocks.Expand,
 	Unlocks.Fertilizer,     # nivel 3
-	Unlocks.Trees,          # nivel 3 de trees
+	Unlocks.Trees,          # nivel 3
 	Unlocks.Grass,          # nivel 4
 	Unlocks.Mazes,
 	Unlocks.Megafarm,
