@@ -41,8 +41,6 @@ def pode_produzir(recurso):
 	return True
 
 def _buffer_power():
-	# drone consome 1 power a cada 30 acoes
-	# buffer = acoes para varrer o campo inteiro 3 vezes
 	acoes_por_ciclo = campo.n * campo.n * 3
 	return acoes_por_ciclo // 30 + 50
 
@@ -50,10 +48,15 @@ def reabastece_power():
 	if not pode_produzir(Items.Power):
 		return
 	minimo = _buffer_power()
-	if num_items(Items.Power) < minimo:
-		print("    [power] abaixo do buffer (" + str(num_items(Items.Power)) + "/" + str(minimo) + "), reabastecendo...")
-		girassol.modo_girassol(minimo)
-		print("    [power] ok = " + str(num_items(Items.Power)))
+	if num_items(Items.Power) >= minimo:
+		return
+	# so tenta reabastece se tiver cenouras para plantar o campo todo
+	if not girassol.tem_cenouras_suficientes():
+		print("    [power] sem cenouras para girassol, pulando reabastecimento")
+		return
+	print("    [power] abaixo do buffer (" + str(num_items(Items.Power)) + "/" + str(minimo) + "), reabastecendo...")
+	girassol.modo_girassol(minimo)
+	print("    [power] ok = " + str(num_items(Items.Power)))
 
 def _cultivo_wood(objetivo):
 	reabastece_power()
@@ -133,7 +136,6 @@ def farma_recurso(recurso, objetivo):
 	if not pode_produzir(recurso):
 		print("    [skip] " + str(recurso) + " nao pode produzir ainda")
 		return
-	# reabastece power antes de qualquer tarefa (exceto o proprio power)
 	if recurso != Items.Power:
 		reabastece_power()
 	print("    [farma] " + str(recurso) + " de " + str(num_items(recurso)) + " ate " + str(objetivo))
@@ -147,4 +149,3 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
-
