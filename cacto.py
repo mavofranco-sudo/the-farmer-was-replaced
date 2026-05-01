@@ -73,8 +73,14 @@ def _limpa_campo():
 				harvest()
 	campo.movimento(acao)
 
+def _colhe_cactos_existentes():
+	# colhe qualquer cacto maduro que ja esteja no campo
+	def acao():
+		if get_entity_type() == Entities.Cactus and can_harvest():
+			harvest()
+	campo.movimento(acao)
+
 def _planta_n(n_sementes):
-	# planta exatamente n_sementes celulas, nao mais
 	plantados = [0]
 	def acao():
 		if plantados[0] >= n_sementes:
@@ -84,8 +90,10 @@ def _planta_n(n_sementes):
 				harvest()
 			else:
 				return
+		if num_items(Items.Cactus) == 0:
+			return
 		_till_ate_soil()
-		if num_unlocked(Unlocks.Plant) and num_items(Items.Cactus) > 0:
+		if num_unlocked(Unlocks.Plant):
 			plant(Entities.Cactus)
 			plantados[0] = plantados[0] + 1
 		if num_items(Items.Water) > 0:
@@ -93,7 +101,6 @@ def _planta_n(n_sementes):
 	campo.movimento(acao)
 
 def _ciclo_com_n(n_celulas):
-	# ciclo completo plantando apenas n_celulas
 	_limpa_campo()
 	_planta_n(n_celulas)
 	_espera_crescer()
@@ -102,17 +109,23 @@ def _ciclo_com_n(n_celulas):
 	harvest()
 
 def _reabastece_sementes():
-	# garante que tem celulas suficientes para plantar o campo todo
 	n_celulas = campo.n * campo.n
-	# se nao tem nenhuma semente, comeca com 1 celula e vai dobrando
+
+	# primeiro tenta colher cactos que ja estejam no campo
+	_colhe_cactos_existentes()
+
+	# se ainda zerado, nao tem como bootstrapar sem semente
 	if num_items(Items.Cactus) == 0:
-		# precisa de pelo menos 1 cacto para comecar - erro critico
+		print("    [erro] sem sementes de cacto - nao e possivel iniciar cultivo")
 		return
-	# planta quantas celulas der com as sementes atuais, em ciclos crescentes
+
+	# ciclos crescentes ate ter sementes suficientes para o campo todo
 	while num_items(Items.Cactus) < n_celulas:
 		disponiveis = num_items(Items.Cactus)
 		if disponiveis == 0:
+			print("    [erro] sementes de cacto esgotaram durante reabastecimento")
 			return
+		print("    [cacto] reabastecendo: " + str(disponiveis) + " sementes -> ciclo de " + str(disponiveis) + " celulas")
 		_ciclo_com_n(disponiveis)
 
 def _planta_campo():
@@ -132,6 +145,9 @@ def _planta_campo():
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
 		_reabastece_sementes()
+		if num_items(Items.Cactus) == 0:
+			print("    [cacto] sem sementes, abortando ciclo")
+			return
 		_limpa_campo()
 		_planta_campo()
 		_espera_crescer()
