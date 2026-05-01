@@ -197,26 +197,23 @@ def alcanca_objetivos(objetivos):
 		alcanca_objetivos_rec(recurso, objetivos[recurso])
 
 def conquista_alcancavel(conquista):
+	if completada(conquista):
+		return False
 	custo = get_cost(conquista)
 	for recurso in custo:
 		if not pode_produzir(recurso):
 			return False
 	return True
 
-def filtra_conquistas(conquistas):
-	for i in range(len(conquistas) - 1, -1, -1):
-		if completada(conquistas[i]) or not conquista_alcancavel(conquistas[i]):
-			conquistas.pop(i)
-
 def escolha_conquista(conquistas):
-	filtra_conquistas(conquistas)
-	if not conquistas:
+	disponiveis = [c for c in conquistas if conquista_alcancavel(c)]
+	if not disponiveis:
 		return None
 
-	melhor_conquista = conquistas[0]
-	menor_custo = calcula_energia(get_cost(conquistas[0]))
+	melhor_conquista = disponiveis[0]
+	menor_custo = calcula_energia(get_cost(disponiveis[0]))
 
-	for conquista in conquistas:
+	for conquista in disponiveis:
 		custo = calcula_energia(get_cost(conquista))
 		if custo < menor_custo:
 			menor_custo = custo
