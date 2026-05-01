@@ -1,5 +1,4 @@
 import campo
-import chapeus
 import gerenciador
 import fila
 
@@ -113,7 +112,7 @@ def _ciclo_dino():
 	else:
 		_serpentina()
 
-	chapeus.usa()
+	change_hat(Hats.Straw_Hat)
 
 def modo_dinossauro(objetivo):
 	while gerenciador.precisa(Items.Bone, objetivo):
