@@ -14,8 +14,13 @@ def inicializa():
 
 	_n_chapeus = len(_chapeus)
 
+def tem_chapeu():
+	return _n_chapeus > 0
+
 def usa():
-	indice = _n_chapeus * random() // 1
+	if not tem_chapeu():
+		return
+	indice = int(_n_chapeus * random())
 	change_hat(_chapeus[indice])
 
 def usa_e_faz(acao):
