@@ -10,7 +10,8 @@ def _planta_cacto():
 	_till_ate_soil()
 	if num_unlocked(Unlocks.Plant):
 		plant(Entities.Cactus)
-	if num_items(Items.Water) > 0: use_item(Items.Water)
+	if num_items(Items.Water) > 0:
+		use_item(Items.Water)
 
 def insertion_sort(direcao, planta=False):
 	x, y = get_pos_x(), get_pos_y()
