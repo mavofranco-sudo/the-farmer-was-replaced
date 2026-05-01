@@ -4,7 +4,6 @@ import cacto
 _hat_dino = [None]
 _hat_normal = [None]
 
-# custo em cactos por maca (o jogo compra automaticamente ao equipar o chapeu)
 _CUSTO_MACA = 4
 
 def configura_hats(hat_dino, hat_normal):
@@ -16,36 +15,56 @@ def _garante_hat_normal():
 		change_hat(_hat_normal[0])
 
 def _garante_cactos_ciclo():
-	# num de cactos para um ciclo completo: n² passos, cada passo pode precisar de maca
-	# na pratica a maca fica ate morrer (colidir), entao o pior caso e n² macas = n²*4 cactos
-	# usamos n² como buffer generoso
 	n = get_world_size()
 	buffer = n * n * _CUSTO_MACA
 	if num_items(Items.Cactus) >= buffer:
 		return
-	print("    [dino] farmando cactos para buffer de " + str(buffer) + " (tem " + str(num_items(Items.Cactus)) + ")")
+	print("    [dino] farmando cactos (buffer=" + str(buffer) + " tem=" + str(num_items(Items.Cactus)) + ")")
 	cacto.modo_cacto(buffer)
+
+def _limpa_celula_atual():
+	# garante que a celula atual esta vazia para a maca ser colocada
+	tipo = get_entity_type()
+	if tipo == None:
+		return
+	if can_harvest():
+		harvest()
+	else:
+		# se nao pode colher agora, forca (ex: cacto imaturo - nao deve existir mas por seguranca)
+		harvest()
 
 def _ciclo_dino():
 	n = get_world_size()
 
-	# 1. garante hat normal para navegar livremente
+	# 1. hat normal para navegar livremente
 	_garante_hat_normal()
 
-	# 2. garante cactos suficientes para o ciclo inteiro ANTES de comecar
+	# 2. cactos suficientes para o ciclo inteiro
 	_garante_cactos_ciclo()
 
-	# 3. posiciona no canto (0,0) com hat normal (sem cauda bloqueando)
+	# 3. vai para (0,0) com hat normal e limpa a celula
 	campo.vai_para(0, 0)
+	_limpa_celula_atual()
 
-	# 4. so agora equipa o chapeu de dino (jogo compra maca com 4 cactos)
+	# 4. equipa chapeu de dino
+	# o jogo coloca a maca embaixo do drone consumindo 4 cactos
+	# a celula DEVE estar vazia para a maca aparecer
 	if _hat_dino[0] != None:
 		change_hat(_hat_dino[0])
 
-	# 5. serpentina com move() relativo - nunca vai_para com chapeu de dino
-	# col 0: sobe North (y=0 -> y=n-1)
-	# col 1: desce South (y=n-1 -> y=0), etc.
+	# verifica se a maca apareceu (entidade deve ser Apple em (0,0))
+	# se nao apareceu (sem cactos suficientes), aborta
+	if get_entity_type() == None:
+		print("    [dino] AVISO: maca nao apareceu em (0,0), abortando ciclo")
+		_garante_hat_normal()
+		return
+
+	# 5. serpentina Hamiltonian: percorre todas as n² celulas sem repetir
+	# col 0: sobe North (y=0 ate y=n-1)
+	# col 1: desce South (y=n-1 ate y=0)
 	# entre colunas: move East
+	moves_feitos = 0
+
 	col = 0
 	while col < n:
 		if col % 2 == 0:
@@ -53,9 +72,10 @@ def _ciclo_dino():
 			while passos < n - 1:
 				ok = move(North)
 				if not ok:
-					# cauda preencheu o caminho - ciclo completo
 					_garante_hat_normal()
+					print("    [dino] ciclo encerrado col=" + str(col) + " moves=" + str(moves_feitos))
 					return
+				moves_feitos += 1
 				passos += 1
 		else:
 			passos = 0
@@ -63,7 +83,9 @@ def _ciclo_dino():
 				ok = move(South)
 				if not ok:
 					_garante_hat_normal()
+					print("    [dino] ciclo encerrado col=" + str(col) + " moves=" + str(moves_feitos))
 					return
+				moves_feitos += 1
 				passos += 1
 
 		col += 1
@@ -71,10 +93,13 @@ def _ciclo_dino():
 			ok = move(East)
 			if not ok:
 				_garante_hat_normal()
+				print("    [dino] ciclo encerrado (East) col=" + str(col) + " moves=" + str(moves_feitos))
 				return
+			moves_feitos += 1
 
-	# serpentina completa - desequipa para liberar cauda (ossos = comprimento)
+	# completou a serpentina inteira
 	_garante_hat_normal()
+	print("    [dino] ciclo COMPLETO moves=" + str(moves_feitos) + "/" + str(n * n - 1))
 
 def modo_dinossauro(objetivo):
 	_garante_hat_normal()
