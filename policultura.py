@@ -51,7 +51,10 @@ def cultiva_e_vota(planta):
 		x, y = get_pos_x(), get_pos_y()
 
 		vencedora = decide_planta(x, y, planta)
-		campo.colhe_e_cultiva(vencedora, _fertilizante)
+		if vencedora == Entities.Carrot:
+			campo.colhe_e_cultiva_arado(vencedora, _fertilizante)
+		else:
+			campo.colhe_e_cultiva(vencedora, _fertilizante)
 		if vencedora == planta:
 			vota(x, y)
 
