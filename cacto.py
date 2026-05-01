@@ -34,13 +34,38 @@ def _tarefa_espera():
 		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, rega)
 	return funcao
 
-def _campo_todo_crescido():
+def _conta_cactos_no_campo():
+	total = 0
 	for x in range(campo.n):
 		for y in range(campo.n):
 			campo.vai_para(x, y)
-			if get_entity_type() == Entities.Cactus and not can_harvest():
-				return False
-	return True
+			if get_entity_type() == Entities.Cactus:
+				total += 1
+	return total
+
+def _campo_todo_crescido():
+	# se nao tem cacto nenhum plantado, nao esta crescido
+	tem_algum = False
+	for x in range(campo.n):
+		for y in range(campo.n):
+			campo.vai_para(x, y)
+			if get_entity_type() == Entities.Cactus:
+				tem_algum = True
+				if not can_harvest():
+					return False
+	return tem_algum
+
+def _planta_primeiro_cacto():
+	# planta pelo menos 1 cacto para ter semente para o resto
+	# o jogo da a semente inicial quando o unlock e feito
+	for x in range(campo.n):
+		for y in range(campo.n):
+			campo.vai_para(x, y)
+			if get_entity_type() == None:
+				campo.till_ate_soil()
+				if num_unlocked(Unlocks.Plant):
+					plant(Entities.Cactus)
+				return
 
 def _measure_safe(direcao=None):
 	if direcao == None:
@@ -86,6 +111,10 @@ def tem_cactos_suficientes():
 	return num_items(Items.Cactus) >= campo.n * campo.n
 
 def modo_cacto(objetivo):
+	# garante que tem pelo menos 1 cacto no campo ou no inventario para comecar
+	if num_items(Items.Cactus) == 0 and _conta_cactos_no_campo() == 0:
+		_planta_primeiro_cacto()
+
 	while num_items(Items.Cactus) < objetivo:
 		megafazenda.paraleliza_blocos(_tarefa_limpa())
 		megafazenda.paraleliza_blocos(_tarefa_planta())
