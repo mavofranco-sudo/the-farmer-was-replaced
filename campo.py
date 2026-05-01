@@ -38,14 +38,48 @@ def movimento_linha(acao):
 	acao()
 
 def movimento_bloco(num_linhas, num_colunas, acao):
-	# percorre o bloco com dois for simples, sentido serpentina
-	# garante que todas as celulas do bloco sejam visitadas
+	# usa get_world_size() direto para nao depender de campo.n desatualizado
+	tam = get_world_size()
 	x0 = get_pos_x()
 	y0 = get_pos_y()
 	for col in range(num_colunas):
 		for lin in range(num_linhas):
-			vai_para(x0 + col, y0 + lin)
+			tx = (x0 + col) % tam
+			ty = (y0 + lin) % tam
+			_vai_para_abs(tx, ty, tam)
 			acao()
+
+def _vai_para_abs(x_destino, y_destino, tam):
+	# navega usando get_world_size() direto, sem depender de campo.n
+	metade = tam // 2
+	x = get_pos_x()
+	y = get_pos_y()
+
+	dx = x_destino - x
+	if dx > metade:
+		dx = dx - tam
+	elif dx < -metade:
+		dx = dx + tam
+
+	dy = y_destino - y
+	if dy > metade:
+		dy = dy - tam
+	elif dy < -metade:
+		dy = dy + tam
+
+	if dx > 0:
+		for _ in range(dx):
+			move(East)
+	elif dx < 0:
+		for _ in range(-dx):
+			move(West)
+
+	if dy > 0:
+		for _ in range(dy):
+			move(North)
+	elif dy < 0:
+		for _ in range(-dy):
+			move(South)
 
 def _tarefa_ara():
 	def funcao():
@@ -102,18 +136,8 @@ def define_dimensoes(p, p_destino, direcao):
 	return [dist, direcao]
 
 def vai_para(x_destino, y_destino):
-	x = get_pos_x()
-	y = get_pos_y()
-	dims_h = define_dimensoes(x, x_destino, East)
-	dims_v = define_dimensoes(y, y_destino, North)
-	dist_horizontal = dims_h[0]
-	dir_horizontal = dims_h[1]
-	dist_vertical = dims_v[0]
-	dir_vertical = dims_v[1]
-	for _ in range(dist_horizontal):
-		move(dir_horizontal)
-	for _ in range(dist_vertical):
-		move(dir_vertical)
+	tam = get_world_size()
+	_vai_para_abs(x_destino, y_destino, tam)
 
 def _agua():
 	if num_items(Items.Water) > 0 and get_water() <= 0.75:
