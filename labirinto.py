@@ -1,63 +1,125 @@
 import campo
 import megafazenda
-import chapeus
 
-def _navega_para_tesouro(x_ini, y_ini):
-	visitados = []
-	visitados.append([x_ini, y_ini])
-	pilha = [[x_ini, y_ini, 0, None]]
+# wall-following: gira à esquerda sempre que possível, senão vai reto, senão direita, senão volta
+# sem loops no labirinto => wall-following garante achar o tesouro
 
-	while len(pilha) > 0:
-		topo = pilha[len(pilha) - 1]
-		x = topo[0]
-		y = topo[1]
-		idx = topo[2]
-		volta = topo[3]
+# direcoes em ordem para rotacao: N, E, S, W (indices 0,1,2,3)
+_dirs = [North, East, South, West]
 
+def _vira_esquerda(idx):
+	return (idx - 1) % 4
+
+def _vira_direita(idx):
+	return (idx + 1) % 4
+
+def _vira_oposto(idx):
+	return (idx + 2) % 4
+
+def _navega_wall_follow(x_ini, y_ini):
+	# wall-following: mantem a parede à esquerda
+	# comeca olhando para North
+	direcao_idx = 0
+
+	passos = 0
+	limite = get_world_size() * get_world_size() * 4
+
+	while passos < limite:
 		if get_entity_type() == Entities.Treasure:
 			return True
 
-		if idx >= len(campo.direcoes):
-			pilha.pop()
-			if volta != None:
-				move(volta)
+		# tenta virar esquerda
+		esq = _vira_esquerda(direcao_idx)
+		if can_move(_dirs[esq]):
+			direcao_idx = esq
+			move(_dirs[direcao_idx])
+			passos += 1
 			continue
 
-		topo[2] = idx + 1
-		direcao = campo.direcoes[idx]
-		proximo = campo.proximo(x, y, direcao)
-		x_p = proximo[0]
-		y_p = proximo[1]
-
-		ja_visitado = False
-		for v in visitados:
-			if v[0] == x_p and v[1] == y_p:
-				ja_visitado = True
-				break
-
-		if ja_visitado:
-			continue
-		if not can_move(direcao):
+		# tenta ir reto
+		if can_move(_dirs[direcao_idx]):
+			move(_dirs[direcao_idx])
+			passos += 1
 			continue
 
-		visitados.append([x_p, y_p])
-		move(direcao)
-		pilha.append([x_p, y_p, 0, campo.opostos[direcao]])
+		# tenta virar direita
+		dir = _vira_direita(direcao_idx)
+		if can_move(_dirs[dir]):
+			direcao_idx = dir
+			move(_dirs[direcao_idx])
+			passos += 1
+			continue
+
+		# sem saida: vira oposto (voltou a um beco sem saida)
+		direcao_idx = _vira_oposto(direcao_idx)
+		move(_dirs[direcao_idx])
+		passos += 1
 
 	return False
 
-def _nivel_mazes():
-	n = num_unlocked(Unlocks.Mazes)
-	if n == 0:
-		return 1
-	return 2 ** (n - 1)
-
-def _custo_entrada():
+def _custo_labirinto():
+	# formula da documentacao: get_world_size() * 2^(num_unlocked(Mazes) - 1)
 	tam = get_world_size()
-	return _nivel_mazes() * tam
+	nivel = num_unlocked(Unlocks.Mazes)
+	if nivel < 1:
+		nivel = 1
+	potencia = 1
+	i = 0
+	while i < nivel - 1:
+		potencia = potencia * 2
+		i += 1
+	return tam * potencia
+
+def _ciclo_drone(indice, nd, objetivo):
+	custo = _custo_labirinto()
+	tam = get_world_size()
+
+	# calcula centro da regiao 2D deste drone
+	cols, rows = _divisao_2d(tam, nd)
+	w = (tam + cols - 1) // cols
+	h = (tam + rows - 1) // rows
+	col_grade = indice // rows
+	row_grade = indice % rows
+	x0 = col_grade * w
+	y0 = row_grade * h
+	x1 = x0 + w
+	if x1 > tam:
+		x1 = tam
+	y1 = y0 + h
+	if y1 > tam:
+		y1 = tam
+	cx = (x0 + x1) // 2
+	cy = (y0 + y1) // 2
+
+	# vai para o centro da regiao
+	campo.vai_para(cx, cy)
+
+	# garante WS suficiente para este drone
+	if num_items(Items.Weird_Substance) < custo:
+		return
+
+	# planta Bush e cria labirinto
+	if get_entity_type() != None:
+		if can_harvest():
+			harvest()
+
+	plant(Entities.Bush)
+	use_item(Items.Weird_Substance, custo)
+
+	# navega ate o tesouro com wall-following
+	x = get_pos_x()
+	y = get_pos_y()
+	achou = _navega_wall_follow(x, y)
+
+	# colhe o tesouro (ou limpa se nao achou)
+	if get_entity_type() != None and can_harvest():
+		harvest()
+	elif get_entity_type() != None:
+		harvest()
+
+	print("    [lab] drone=" + str(indice) + " gold=" + str(num_items(Items.Gold)) + " achou=" + str(achou))
 
 def _divisao_2d(n, nd):
-	# divide nd drones em grade cols x rows mais quadrada possivel
 	melhor_c = nd
 	melhor_r = 1
 	c = 1
@@ -76,242 +138,188 @@ def _divisao_2d(n, nd):
 		c += 1
 	return melhor_c, melhor_r
 
-def _centro_regiao(indice, nd):
-	# calcula o centro da regiao do drone de indice dado
-	tam = get_world_size()
-	cols, rows = _divisao_2d(tam, nd)
-
-	# largura e altura de cada regiao
-	w = (tam + cols - 1) // cols
-	h = (tam + rows - 1) // rows
-
-	# qual coluna e linha da grade pertence a este indice
-	# percorre: col 0 row 0, col 0 row 1, ..., col 0 row rows-1, col 1 row 0, ...
-	col_grade = indice // rows
-	row_grade = indice % rows
-
-	x0 = col_grade * w
-	y0 = row_grade * h
-	x1 = x0 + w
-	if x1 > tam:
-		x1 = tam
-	y1 = y0 + h
-	if y1 > tam:
-		y1 = tam
-
-	cx = (x0 + x1) // 2
-	cy = (y0 + y1) // 2
-	return cx, cy
-
-def _ciclo_drone(indice, nd, objetivo):
-	custo = _custo_entrada()
-	centro = _centro_regiao(indice, nd)
-	cx = centro[0]
-	cy = centro[1]
-
-	campo.vai_para(cx, cy)
-	campo.cultiva(Entities.Bush)
-
-	for _ in range(301):
-		if num_items(Items.Gold) >= objetivo:
-			break
-		if num_items(Items.Weird_Substance) < custo:
-			break
-		use_item(Items.Weird_Substance, custo)
-
-		resultado = measure()
-		if resultado == None:
-			continue
-
-		x = get_pos_x()
-		y = get_pos_y()
-		_navega_para_tesouro(x, y)
-
-	if get_entity_type() != None and can_harvest():
-		harvest()
-
-# 32 fabricas para paraleliza_blocos - cada uma executa o ciclo do drone i
-def _faz_drone_0(objetivo, nd):
+# 32 fabricas para paraleliza_blocos
+def _fab_0(obj, nd):
 	def t():
-		_ciclo_drone(0, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(0, nd, obj)
+	return t
 
-def _faz_drone_1(objetivo, nd):
+def _fab_1(obj, nd):
 	def t():
-		_ciclo_drone(1, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(1, nd, obj)
+	return t
 
-def _faz_drone_2(objetivo, nd):
+def _fab_2(obj, nd):
 	def t():
-		_ciclo_drone(2, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(2, nd, obj)
+	return t
 
-def _faz_drone_3(objetivo, nd):
+def _fab_3(obj, nd):
 	def t():
-		_ciclo_drone(3, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(3, nd, obj)
+	return t
 
-def _faz_drone_4(objetivo, nd):
+def _fab_4(obj, nd):
 	def t():
-		_ciclo_drone(4, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(4, nd, obj)
+	return t
 
-def _faz_drone_5(objetivo, nd):
+def _fab_5(obj, nd):
 	def t():
-		_ciclo_drone(5, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(5, nd, obj)
+	return t
 
-def _faz_drone_6(objetivo, nd):
+def _fab_6(obj, nd):
 	def t():
-		_ciclo_drone(6, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(6, nd, obj)
+	return t
 
-def _faz_drone_7(objetivo, nd):
+def _fab_7(obj, nd):
 	def t():
-		_ciclo_drone(7, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(7, nd, obj)
+	return t
 
-def _faz_drone_8(objetivo, nd):
+def _fab_8(obj, nd):
 	def t():
-		_ciclo_drone(8, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(8, nd, obj)
+	return t
 
-def _faz_drone_9(objetivo, nd):
+def _fab_9(obj, nd):
 	def t():
-		_ciclo_drone(9, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(9, nd, obj)
+	return t
 
-def _faz_drone_10(objetivo, nd):
+def _fab_10(obj, nd):
 	def t():
-		_ciclo_drone(10, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(10, nd, obj)
+	return t
 
-def _faz_drone_11(objetivo, nd):
+def _fab_11(obj, nd):
 	def t():
-		_ciclo_drone(11, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(11, nd, obj)
+	return t
 
-def _faz_drone_12(objetivo, nd):
+def _fab_12(obj, nd):
 	def t():
-		_ciclo_drone(12, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(12, nd, obj)
+	return t
 
-def _faz_drone_13(objetivo, nd):
+def _fab_13(obj, nd):
 	def t():
-		_ciclo_drone(13, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(13, nd, obj)
+	return t
 
-def _faz_drone_14(objetivo, nd):
+def _fab_14(obj, nd):
 	def t():
-		_ciclo_drone(14, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(14, nd, obj)
+	return t
 
-def _faz_drone_15(objetivo, nd):
+def _fab_15(obj, nd):
 	def t():
-		_ciclo_drone(15, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(15, nd, obj)
+	return t
 
-def _faz_drone_16(objetivo, nd):
+def _fab_16(obj, nd):
 	def t():
-		_ciclo_drone(16, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(16, nd, obj)
+	return t
 
-def _faz_drone_17(objetivo, nd):
+def _fab_17(obj, nd):
 	def t():
-		_ciclo_drone(17, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(17, nd, obj)
+	return t
 
-def _faz_drone_18(objetivo, nd):
+def _fab_18(obj, nd):
 	def t():
-		_ciclo_drone(18, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(18, nd, obj)
+	return t
 
-def _faz_drone_19(objetivo, nd):
+def _fab_19(obj, nd):
 	def t():
-		_ciclo_drone(19, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(19, nd, obj)
+	return t
 
-def _faz_drone_20(objetivo, nd):
+def _fab_20(obj, nd):
 	def t():
-		_ciclo_drone(20, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(20, nd, obj)
+	return t
 
-def _faz_drone_21(objetivo, nd):
+def _fab_21(obj, nd):
 	def t():
-		_ciclo_drone(21, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(21, nd, obj)
+	return t
 
-def _faz_drone_22(objetivo, nd):
+def _fab_22(obj, nd):
 	def t():
-		_ciclo_drone(22, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(22, nd, obj)
+	return t
 
-def _faz_drone_23(objetivo, nd):
+def _fab_23(obj, nd):
 	def t():
-		_ciclo_drone(23, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(23, nd, obj)
+	return t
 
-def _faz_drone_24(objetivo, nd):
+def _fab_24(obj, nd):
 	def t():
-		_ciclo_drone(24, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(24, nd, obj)
+	return t
 
-def _faz_drone_25(objetivo, nd):
+def _fab_25(obj, nd):
 	def t():
-		_ciclo_drone(25, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(25, nd, obj)
+	return t
 
-def _faz_drone_26(objetivo, nd):
+def _fab_26(obj, nd):
 	def t():
-		_ciclo_drone(26, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(26, nd, obj)
+	return t
 
-def _faz_drone_27(objetivo, nd):
+def _fab_27(obj, nd):
 	def t():
-		_ciclo_drone(27, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(27, nd, obj)
+	return t
 
-def _faz_drone_28(objetivo, nd):
+def _fab_28(obj, nd):
 	def t():
-		_ciclo_drone(28, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(28, nd, obj)
+	return t
 
-def _faz_drone_29(objetivo, nd):
+def _fab_29(obj, nd):
 	def t():
-		_ciclo_drone(29, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(29, nd, obj)
+	return t
 
-def _faz_drone_30(objetivo, nd):
+def _fab_30(obj, nd):
 	def t():
-		_ciclo_drone(30, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(30, nd, obj)
+	return t
 
-def _faz_drone_31(objetivo, nd):
+def _fab_31(obj, nd):
 	def t():
-		_ciclo_drone(31, nd, objetivo)
-	return chapeus.usa_e_faz(t)
+		_ciclo_drone(31, nd, obj)
+	return t
 
 _fabricas = [
-	_faz_drone_0,  _faz_drone_1,  _faz_drone_2,  _faz_drone_3,
-	_faz_drone_4,  _faz_drone_5,  _faz_drone_6,  _faz_drone_7,
-	_faz_drone_8,  _faz_drone_9,  _faz_drone_10, _faz_drone_11,
-	_faz_drone_12, _faz_drone_13, _faz_drone_14, _faz_drone_15,
-	_faz_drone_16, _faz_drone_17, _faz_drone_18, _faz_drone_19,
-	_faz_drone_20, _faz_drone_21, _faz_drone_22, _faz_drone_23,
-	_faz_drone_24, _faz_drone_25, _faz_drone_26, _faz_drone_27,
-	_faz_drone_28, _faz_drone_29, _faz_drone_30, _faz_drone_31
+	_fab_0,  _fab_1,  _fab_2,  _fab_3,
+	_fab_4,  _fab_5,  _fab_6,  _fab_7,
+	_fab_8,  _fab_9,  _fab_10, _fab_11,
+	_fab_12, _fab_13, _fab_14, _fab_15,
+	_fab_16, _fab_17, _fab_18, _fab_19,
+	_fab_20, _fab_21, _fab_22, _fab_23,
+	_fab_24, _fab_25, _fab_26, _fab_27,
+	_fab_28, _fab_29, _fab_30, _fab_31
 ]
 
-def _garante_weird_substance(objetivo, nd):
-	custo = _custo_entrada()
-	# cada drone faz 301 uses por ciclo
-	necessario = custo * 301 * nd * 2
+def _garante_weird_substance(nd):
+	custo = _custo_labirinto()
+	# cada drone precisa de 1 labirinto por ciclo
+	necessario = custo * nd * 2
 	if num_items(Items.Weird_Substance) < necessario:
 		print("    [labirinto] abastecer Weird_Substance: " + str(necessario))
 		import policultura
 		policultura.cria_modo_policultura(Items.Weird_Substance, Entities.Tree)(necessario)
 
-def _spawna_drones(objetivo):
+def _spawna_ciclo(objetivo):
 	nd = max_drones()
 	if nd < 1:
 		nd = 1
@@ -321,8 +329,6 @@ def _spawna_drones(objetivo):
 	drones = []
 	i = 0
 	while i < nd and i < len(_fabricas):
-		centro = _centro_regiao(i, nd)
-		campo.vai_para(centro[0], centro[1])
 		tarefa = _fabricas[i](objetivo, nd)
 		drone = spawn_drone(tarefa)
 		if drone:
@@ -339,12 +345,13 @@ def modo_labirinto(objetivo):
 		nd = max_drones()
 		if nd < 1:
 			nd = 1
-		_garante_weird_substance(objetivo, nd)
+		_garante_weird_substance(nd)
 		tam = get_world_size()
 		cols, rows = _divisao_2d(tam, nd)
+		custo = _custo_labirinto()
 		print("    [labirinto] gold=" + str(num_items(Items.Gold)) + "/" + str(objetivo) +
 			" nd=" + str(nd) + " grade=" + str(cols) + "x" + str(rows) +
-			" custo=" + str(_custo_entrada()))
-		_spawna_drones(objetivo)
+			" custo=" + str(custo))
+		_spawna_ciclo(objetivo)
 	clear()
 	campo.ara()
