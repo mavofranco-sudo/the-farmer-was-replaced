@@ -122,102 +122,21 @@ def inicializa():
 		}
 }
 
-def calcula_energia_rec(recurso, objetivo):
-	global _recursos
-
-	resposta = 0
-
-	if precisa(recurso, objetivo):
-		if not pode_produzir(recurso):
-			return 0
-		dados = _recursos[recurso]
-
-		objetivo_real = (objetivo - num_items(recurso))
-		n_ciclos = util.teto_div(objetivo_real, dados["producao_ciclo"])
-		if dados["ciclo_inicio"]:
-			n_ciclos += 1
-		custo_real = dados["custo_ciclo"] * n_ciclos
-		custo_energia_real = dados["custo_energia_ciclo"] * n_ciclos
-
-		resposta = custo_energia_real
-
-		custo = get_cost(dados["planta"])
-		for item in custo:
-			qtd = custo[item]
-			resposta += calcula_energia_rec(item, qtd * custo_real)
-
-	return resposta
-
-def calcula_energia(objetivos):
-	global _ordem
-
-	resposta = 0
-
-	for recurso in _ordem:
-		if recurso not in objetivos:
-			continue
-		resposta += calcula_energia_rec(recurso, objetivos[recurso])
-
-	return util.teto_div(resposta, 30)
-
 def precisa(recurso, objetivo):
 	return num_items(recurso) < objetivo
 
-def alcanca_objetivos_rec(recurso, objetivo):
+def farma_recurso(recurso, objetivo):
 	global _recursos
+	if not precisa(recurso, objetivo):
+		return
+	if not pode_produzir(recurso):
+		return
+	dados = _recursos[recurso]
+	dados["cultivo"](objetivo)
 
-	if precisa(recurso, objetivo):
-		if not pode_produzir(recurso):
-			return
-		dados = _recursos[recurso]
-
-		objetivo_real = (objetivo - num_items(recurso))
-		n_ciclos = util.teto_div(objetivo_real, dados["producao_ciclo"])
-		if dados["ciclo_inicio"]:
-			n_ciclos += 1
-		custo_real = dados["custo_ciclo"] * n_ciclos
-
-		custo = get_cost(dados["planta"])
-		for item in custo:
-			qtd = custo[item]
-			alcanca_objetivos_rec(item, qtd * custo_real)
-
-		dados["cultivo"](objetivo)
-
-def alcanca_objetivos(objetivos):
+def farma_custo(custo):
 	global _ordem
-
-	energia = calcula_energia(objetivos)
-	if energia > 0 and pode_produzir(Items.Power):
-		objetivos[Items.Power] = energia
-
 	for recurso in _ordem:
-		if recurso not in objetivos:
+		if recurso not in custo:
 			continue
-		alcanca_objetivos_rec(recurso, objetivos[recurso])
-
-def conquista_alcancavel(conquista):
-	if completada(conquista):
-		return False
-	custo = get_cost(conquista)
-	for recurso in custo:
-		if not pode_produzir(recurso):
-			return False
-	return True
-
-def escolha_conquista(conquistas):
-	melhor_conquista = None
-	menor_custo = -1
-	encontrou = False
-
-	for conquista in conquistas:
-		if not conquista_alcancavel(conquista):
-			continue
-		custo = calcula_energia(get_cost(conquista))
-		if not encontrou or custo < menor_custo:
-			menor_custo = custo
-			melhor_conquista = conquista
-			encontrou = True
-
-	return melhor_conquista
-
+		farma_recurso(recurso, custo[recurso])
