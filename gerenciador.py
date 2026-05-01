@@ -47,7 +47,6 @@ def _buffer_power():
 	return acoes_por_ciclo // 30 + 50
 
 def reabastece_power():
-	"""Garante buffer minimo de Power antes de tarefas pesadas."""
 	if not pode_produzir(Items.Power):
 		return
 	minimo = _buffer_power()
@@ -148,3 +147,4 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
+
