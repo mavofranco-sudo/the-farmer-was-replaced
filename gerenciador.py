@@ -50,9 +50,8 @@ def reabastece_power():
 	minimo = _buffer_power()
 	if num_items(Items.Power) >= minimo:
 		return
-	# so tenta reabastece se tiver cenouras para plantar o campo todo
 	if not girassol.tem_cenouras_suficientes():
-		print("    [power] sem cenouras para girassol, pulando reabastecimento")
+		print("    [power] sem cenouras suficientes, pulando reabastecimento")
 		return
 	print("    [power] abaixo do buffer (" + str(num_items(Items.Power)) + "/" + str(minimo) + "), reabastecendo...")
 	girassol.modo_girassol(minimo)
@@ -64,6 +63,7 @@ def _cultivo_wood(objetivo):
 		policultura.cria_modo_policultura(Items.Wood, Entities.Bush)(objetivo)
 	else:
 		policultura.cria_modo_policultura(Items.Wood, Entities.Tree)(objetivo)
+	reabastece_power()
 
 def _reabastece_carrot():
 	buffer = campo.n * campo.n * 2 + 50
@@ -72,14 +72,19 @@ def _reabastece_carrot():
 	if num_items(Items.Hay) < buffer:
 		reabastece_power()
 		policultura.cria_modo_policultura(Items.Hay, Entities.Grass)(buffer)
+		reabastece_power()
 
 def _cultivo_carrot(objetivo):
 	_reabastece_carrot()
 	policultura.cria_modo_policultura_com_reabastecimento(Items.Carrot, Entities.Carrot, _reabastece_carrot)(objetivo)
+	reabastece_power()
 
 def inicializa():
 	global _ordem
 	global _recursos
+
+	campo.inicializa()
+	megafazenda.inicializa()
 
 	dimensao = min(megafazenda.linhas, megafazenda.colunas)
 	if dimensao <= 0:
@@ -141,6 +146,7 @@ def farma_recurso(recurso, objetivo):
 	print("    [farma] " + str(recurso) + " de " + str(num_items(recurso)) + " ate " + str(objetivo))
 	dados = _recursos[recurso]
 	dados["cultivo"](objetivo)
+	reabastece_power()
 	print("    [ok] " + str(recurso) + " = " + str(num_items(recurso)))
 
 def farma_custo(custo):
