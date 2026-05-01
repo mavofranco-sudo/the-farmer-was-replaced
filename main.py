@@ -13,7 +13,7 @@ def inicializa(conquista=None):
 		campo.ara()
 
 clear()
-inicializa(Unlocks.Expand)
+inicializa()
 chapeus.usa()
 
 conquistas = list(Unlocks)
