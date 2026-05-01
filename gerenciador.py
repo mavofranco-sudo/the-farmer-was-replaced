@@ -36,6 +36,12 @@ def pode_produzir(recurso):
 		return num_unlocked(Unlocks.Cactus) > 0
 	if recurso == Items.Pumpkin:
 		return num_unlocked(Unlocks.Pumpkins) > 0
+	if recurso == Items.Wood:
+		return num_unlocked(Unlocks.Trees) > 0
+	if recurso == Items.Weird_Substance:
+		return num_unlocked(Unlocks.Trees) > 0
+	if recurso == Items.Carrot:
+		return num_unlocked(Unlocks.Carrots) > 0
 	return True
 
 def inicializa():
