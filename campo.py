@@ -63,6 +63,20 @@ def movimento_bloco(linhas, colunas, acao):
 		acao()
 		move(dir_horizontal)
 
+def _tarefa_ara():
+	def funcao():
+		def faz_till():
+			till()
+		movimento_bloco(megafazenda.linhas, megafazenda.colunas, faz_till)
+	return funcao
+
+def _tarefa_limpa():
+	def funcao():
+		def faz_colhe():
+			colhe()
+		movimento_bloco(megafazenda.linhas, megafazenda.colunas, faz_colhe)
+	return funcao
+
 def cria_movimento(acao):
 	def funcao():
 		movimento(acao)
@@ -76,7 +90,7 @@ def cria_movimento_linha(acao):
 	return funcao
 
 def ara():
-	megafazenda.paraleliza_linha(cria_movimento_linha(till))
+	megafazenda.paraleliza_blocos(_tarefa_ara())
 
 def colhe():
 	while get_entity_type() and not can_harvest():
@@ -85,7 +99,7 @@ def colhe():
 		harvest()
 
 def limpa():
-	megafazenda.paraleliza_linha(cria_movimento_linha(colhe))
+	megafazenda.paraleliza_blocos(_tarefa_limpa())
 
 def proximo(x, y, direcao, passos=1):
 	delta = deltas[direcao]
