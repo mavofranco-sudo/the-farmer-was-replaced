@@ -13,7 +13,7 @@ def _planta_abobora():
 	_till_ate_soil()
 	if num_unlocked(Unlocks.Plant):
 		plant(Entities.Pumpkin)
-	campo.agua()
+	if num_items(Items.Water) > 0: use_item(Items.Water)
 
 # FASE 1: planta em todas as celulas (primeira vez)
 def inicializa():
