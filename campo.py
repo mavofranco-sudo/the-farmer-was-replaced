@@ -11,10 +11,10 @@ opostos = {
 	West: East
 }
 deltas = {
-	North: (0, 1),
-	South: (0, -1),
-	East: (1, 0),
-	West: (-1, 0)
+	North: [0, 1],
+	South: [0, -1],
+	East: [1, 0],
+	West: [-1, 0]
 }
 
 def inicializa():
@@ -88,8 +88,10 @@ def limpa():
 	megafazenda.paraleliza_linha(cria_movimento_linha(colhe))
 
 def proximo(x, y, direcao, passos=1):
-	x_delta, y_delta = deltas[direcao]
-	return x + passos * x_delta, y + passos * y_delta
+	delta = deltas[direcao]
+	x_delta = delta[0]
+	y_delta = delta[1]
+	return [x + passos * x_delta, y + passos * y_delta]
 
 def distancia(x1, y1, x2, y2):
 	return abs(x2 - x1) + abs(y2 - y1)
@@ -103,13 +105,18 @@ def define_dimensoes(p, p_destino, direcao):
 		dist = n - dist
 		direcao = opostos[direcao]
 
-	return dist, direcao
+	return [dist, direcao]
 
 def vai_para(x_destino, y_destino):
-	x, y = get_pos_x(), get_pos_y()
-	
-	dist_horizontal, dir_horizontal = define_dimensoes(get_pos_x(), x_destino, East)
-	dist_vertical, dir_vertical = define_dimensoes(get_pos_y(), y_destino, North)
+	x = get_pos_x()
+	y = get_pos_y()
+
+	dims_h = define_dimensoes(x, x_destino, East)
+	dims_v = define_dimensoes(y, y_destino, North)
+	dist_horizontal = dims_h[0]
+	dir_horizontal = dims_h[1]
+	dist_vertical = dims_v[0]
+	dir_vertical = dims_v[1]
 
 	for _ in range(dist_horizontal):
 		move(dir_horizontal)
@@ -155,4 +162,3 @@ def colhe_e_cultiva_arado(planta, fertilizante=False):
 	_agua()
 	if fertilizante:
 		_fertiliza()
-
