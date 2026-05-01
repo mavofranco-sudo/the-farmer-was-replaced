@@ -26,7 +26,6 @@ def desbloqueia(conquista):
 
 clear()
 inicializa()
-chapeus.usa()
 
 ordem = [
 	# fase 1: base
@@ -101,3 +100,4 @@ ordem = [
 
 for conquista in ordem:
 	desbloqueia(conquista)
+
