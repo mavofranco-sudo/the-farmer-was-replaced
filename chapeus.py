@@ -1,11 +1,16 @@
-_chapeus_bloqueados = [Hats.Dinosaur_Hat]
+_requisitos = {
+	Hats.Dinosaur_Hat: Unlocks.Dinosaurs,
+}
+
+def chapeu_disponivel(chapeu):
+	if chapeu in _requisitos:
+		return num_unlocked(_requisitos[chapeu]) > 0
+	return num_unlocked(chapeu) > 0
 
 def lista_chapeus_disponiveis():
 	disponiveis = []
 	for chapeu in Hats:
-		if chapeu in _chapeus_bloqueados:
-			continue
-		if num_unlocked(chapeu):
+		if chapeu_disponivel(chapeu):
 			disponiveis.append(chapeu)
 	return disponiveis
 
