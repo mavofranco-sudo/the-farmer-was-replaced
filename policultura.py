@@ -44,9 +44,16 @@ def vota(x, y):
 		return
 
 	candidata, (x_candidata, y_candidata) = get_companion()
+
+	# ignora se a candidata nao esta no dicionario de votos (ex: e a propria planta alvo)
+	if candidata not in _votos_pra_casa[(x_candidata, y_candidata)]:
+		return
+
 	if _voto_por_casa[(x, y)]:
 		candidata_anterior, x_candidata_anterior, y_candidata_anterior = _voto_por_casa[(x, y)]
-		_votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)][candidata_anterior] -= 1
+		# desfaz voto anterior apenas se ainda e valido
+		if candidata_anterior in _votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)]:
+			_votos_pra_casa[(x_candidata_anterior, y_candidata_anterior)][candidata_anterior] -= 1
 	_voto_por_casa[(x, y)] = (candidata, x_candidata, y_candidata)
 	_votos_pra_casa[(x_candidata, y_candidata)][candidata] += 1
 
