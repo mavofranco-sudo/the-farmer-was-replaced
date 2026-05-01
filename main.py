@@ -24,14 +24,70 @@ clear()
 inicializa()
 chapeus.usa()
 
-# 1. Velocidade (20 grama) — primeiro pra farmar mais rapido
-desbloqueia(Unlocks.Speed)
+ordem = [
+	Unlocks.Speed,
+	Unlocks.Plant,
+	Unlocks.Expand,
+	Unlocks.Expand,
+	Unlocks.Speed,
+	Unlocks.Carrots,
+	Unlocks.Grass,
+	Unlocks.Trees,
+	Unlocks.Trees,
+	Unlocks.Expand,
+	Unlocks.Carrots,
+	Unlocks.Speed,
+	Unlocks.Expand,
+	Unlocks.Watering,
+	Unlocks.Watering,
+	Unlocks.Carrots,
+	Unlocks.Grass,
+	Unlocks.Sunflowers,
+	Unlocks.Fertilizer,
+	Unlocks.Watering,
+	Unlocks.Speed,
+	Unlocks.Pumpkins,
+	Unlocks.Watering,
+	Unlocks.Polyculture,
+	Unlocks.Speed,
+	Unlocks.Expand,
+	Unlocks.Fertilizer,
+	Unlocks.Mazes,
+	Unlocks.Megafarm,
+	Unlocks.Trees,
+	Unlocks.Trees,
+	Unlocks.Carrots,
+	Unlocks.Watering,
+	Unlocks.Pumpkins,
+	Unlocks.Pumpkins,
+	Unlocks.Expand,
+	Unlocks.Cactus,
+	Unlocks.Dinosaurs,
+	Unlocks.Dinosaurs,
+	Unlocks.Polyculture,
+	Unlocks.Mazes,
+	Unlocks.Mazes,
+	Unlocks.Megafarm,
+	Unlocks.Megafarm,
+	Unlocks.Grass,
+	Unlocks.Trees,
+	Unlocks.Fertilizer,
+	Unlocks.Fertilizer,
+	Unlocks.Watering,
+	Unlocks.Carrots,
+	Unlocks.Carrots,
+	Unlocks.Pumpkins,
+	Unlocks.Pumpkins,
+	Unlocks.Expand,
+	Unlocks.Megafarm,
+	Unlocks.Cactus,
+	Unlocks.Cactus,
+	Unlocks.Dinosaurs,
+	Unlocks.Dinosaurs,
+	Unlocks.Dinosaurs,
+	Unlocks.Mazes,
+	Unlocks.Leaderboard,
+]
 
-# 2. Grama (200 grama) — aumenta producao de hay
-desbloqueia(Unlocks.Grass)
-
-# A partir daqui continua pelos demais unlocks em ordem util
-conquistas = list(Unlocks)
-for conquista in conquistas:
-	if get_cost(conquista):
-		desbloqueia(conquista)
+for conquista in ordem:
+	desbloqueia(conquista)
