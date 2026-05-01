@@ -29,39 +29,45 @@ inicializa()
 chapeus.usa()
 
 ordem = [
+	# fase inicial: velocidade e expansao basica
 	Unlocks.Speed,
 	Unlocks.Plant,
+	Unlocks.Grass,          # multiplicador de hay desde cedo
 	Unlocks.Expand,
 	Unlocks.Expand,
 	Unlocks.Speed,
+	Unlocks.Grass,          # nivel 2 de grass
+	Unlocks.Trees,
+	Unlocks.Trees,          # multiplicador de wood/weird
 	Unlocks.Carrots,
-	Unlocks.Grass,
-	Unlocks.Trees,
-	Unlocks.Trees,
+	Unlocks.Carrots,        # multiplicador de cenoura
 	Unlocks.Expand,
-	Unlocks.Carrots,
 	Unlocks.Speed,
 	Unlocks.Expand,
 	Unlocks.Watering,
 	Unlocks.Watering,
-	Unlocks.Carrots,
-	Unlocks.Grass,
+	Unlocks.Watering,       # nivel 3 de watering
+	Unlocks.Grass,          # nivel 3 de grass
+	Unlocks.Carrots,        # nivel 3 de cenoura
 	Unlocks.Sunflowers,
 	Unlocks.Fertilizer,
-	Unlocks.Watering,
+	Unlocks.Fertilizer,     # nivel 2 de fertilizer
+	Unlocks.Watering,       # nivel 4 de watering
 	Unlocks.Speed,
 	Unlocks.Pumpkins,
-	Unlocks.Watering,
+	Unlocks.Watering,       # nivel 5
 	Unlocks.Polyculture,
 	Unlocks.Speed,
 	Unlocks.Expand,
-	Unlocks.Fertilizer,
+	Unlocks.Fertilizer,     # nivel 3
+	Unlocks.Trees,          # nivel 3 de trees
+	Unlocks.Grass,          # nivel 4
 	Unlocks.Mazes,
 	Unlocks.Megafarm,
-	Unlocks.Trees,
-	Unlocks.Trees,
-	Unlocks.Carrots,
-	Unlocks.Watering,
+	Unlocks.Trees,          # nivel 4
+	Unlocks.Trees,          # nivel 5
+	Unlocks.Carrots,        # nivel 4
+	Unlocks.Watering,       # nivel 6
 	Unlocks.Pumpkins,
 	Unlocks.Pumpkins,
 	Unlocks.Expand,
@@ -73,8 +79,8 @@ ordem = [
 	Unlocks.Mazes,
 	Unlocks.Megafarm,
 	Unlocks.Megafarm,
-	Unlocks.Grass,
-	Unlocks.Trees,
+	Unlocks.Grass,          # nivel 5
+	Unlocks.Trees,          # nivel 6
 	Unlocks.Fertilizer,
 	Unlocks.Fertilizer,
 	Unlocks.Watering,
