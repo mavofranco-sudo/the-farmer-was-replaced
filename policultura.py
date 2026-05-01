@@ -8,6 +8,12 @@ _votos_pra_casa = {}
 _plantas = [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]
 _sem_consumivel = [Entities.Grass, Entities.Bush]
 
+# plantas que precisam de Soil (till antes de plantar)
+_precisa_soil = [Entities.Carrot, Entities.Pumpkin, Entities.Sunflower, Entities.Cactus]
+
+# plantas que precisam de Grassland (NAO pode fazer till)
+_precisa_grassland = [Entities.Grass, Entities.Bush, Entities.Tree]
+
 def cria_modo_policultura(recurso, planta):
 	def funcao(objetivo):
 		modo_policultura(recurso, planta, objetivo)
@@ -56,6 +62,30 @@ def vota(x, y):
 	_voto_por_casa[(x, y)] = [candidata, x_candidata, y_candidata]
 	_votos_pra_casa[(x_candidata, y_candidata)][candidata] += 1
 
+def _precisa_de_soil(planta):
+	for p in _precisa_soil:
+		if p == planta:
+			return True
+	return False
+
+def _precisa_de_grassland(planta):
+	for p in _precisa_grassland:
+		if p == planta:
+			return True
+	return False
+
+def _prepara_solo(vencedora):
+	# prepara o solo correto para a planta
+	solo_atual = get_ground_type()
+	if _precisa_de_soil(vencedora):
+		# precisa de Soil - faz till se estiver em Grassland
+		if solo_atual != Grounds.Soil:
+			till()
+	elif _precisa_de_grassland(vencedora):
+		# precisa de Grassland - NAO faz till
+		# se ja estiver em Soil, nao tem como reverter - tenta plantar mesmo assim
+		pass
+
 def _cultiva_celula(planta):
 	global _fertilizante
 	x = get_pos_x()
@@ -68,12 +98,11 @@ def _cultiva_celula(planta):
 		if can_harvest():
 			harvest()
 		else:
-			# ainda crescendo - so rega e sai
 			campo._agua()
 			return
 
-	# garante soil antes de plantar
-	campo.till_ate_soil()
+	# prepara solo correto para a planta escolhida
+	_prepara_solo(vencedora)
 
 	if num_unlocked(Unlocks.Plant):
 		plant(vencedora)
