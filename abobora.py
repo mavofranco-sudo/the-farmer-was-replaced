@@ -7,7 +7,6 @@ _CUSTO_SEMENTE = 512
 def _trata_celula():
 	tipo = get_entity_type()
 	if tipo == None:
-		# verifica solo: so planta se for Soil, senao faz till primeiro
 		if get_ground_type() != Grounds.Soil:
 			till()
 		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
@@ -25,6 +24,16 @@ def _trata_celula():
 	elif tipo == Entities.Pumpkin:
 		if not can_harvest():
 			campo._agua()
+	else:
+		# qualquer outra entidade (grama, arbusto, etc): colhe/limpa e ara
+		if can_harvest():
+			harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
 
 def _colhe_celula():
 	if get_entity_type() == Entities.Pumpkin and can_harvest():
@@ -32,6 +41,16 @@ def _colhe_celula():
 
 def _ara_celula():
 	till()
+
+def _limpa_nao_abobora():
+	# colhe qualquer coisa que nao seja abobora (residuos de grass/tree/etc)
+	tipo = get_entity_type()
+	if tipo == None:
+		return
+	if tipo == Entities.Pumpkin:
+		return
+	if can_harvest():
+		harvest()
 
 def _todas_prontas():
 	tam = get_world_size()
@@ -73,6 +92,8 @@ def _reabastece_insumos():
 def modo_abobora(objetivo):
 	campo.inicializa()
 	megafazenda.inicializa()
+	# limpa residuos antes de comecar (grama, arbustos, etc de ciclos anteriores)
+	megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 	megafazenda.paraleliza_blocos(_ara_celula)
 	ciclo = 0
 	while num_items(Items.Pumpkin) < objetivo:
@@ -82,6 +103,8 @@ def modo_abobora(objetivo):
 		print("    [abobora] ciclo=" + str(ciclo) + " n=" + str(get_world_size()) +
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
+		# limpa residuos que o reabastecimento pode ter deixado
+		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 		megafazenda.paraleliza_blocos(_trata_celula)
 		esperas = 0
 		while not _todas_prontas():
