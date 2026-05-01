@@ -55,8 +55,10 @@ def _reabastece():
 		gerenciador.farma_recurso(Items.Carrot, minimo_cenouras)
 
 def modo_abobora(objetivo):
+	campo.ara()
 	while gerenciador.precisa(Items.Pumpkin, objetivo):
 		_reabastece()
 		megafazenda.paraleliza_linha(_aguarda_e_replanta)
 		_colhe_mega()
+		campo.ara()
 
