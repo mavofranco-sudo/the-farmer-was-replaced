@@ -15,11 +15,14 @@ def inicializa(conquista=None):
 def desbloqueia(conquista):
 	custo = get_cost(conquista)
 	if custo:
-		print(conquista)
+		print(">>> inicio: " + str(conquista))
+		print("    custo: " + str(custo))
 		gerenciador.farma_custo(custo)
+		print("    farmado, desbloqueando...")
 		unlock(conquista)
 		do_a_flip()
 		inicializa(conquista)
+		print("<<< concluido: " + str(conquista))
 
 clear()
 inicializa()
