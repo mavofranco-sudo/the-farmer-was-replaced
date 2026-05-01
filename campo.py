@@ -80,7 +80,7 @@ def ara():
 
 def colhe():
 	while get_entity_type() and not can_harvest():
-		agua()
+		_agua()
 	if get_entity_type():
 		harvest()
 
@@ -116,20 +116,20 @@ def vai_para(x_destino, y_destino):
 	for _ in range(dist_vertical):
 		move(dir_vertical)
 
-def agua():
+def _agua():
 	if num_items(Items.Water) > 0 and get_water() <= 0.75:
 		use_item(Items.Water)
 
-def fertiliza():
+def _fertiliza():
 	if num_items(Items.Fertilizer) > 0:
 		use_item(Items.Fertilizer)
 
 def cultiva(planta, fertilizante=False):
 	if num_unlocked(Unlocks.Plant):
 		plant(planta)
-	agua()
+	_agua()
 	if fertilizante:
-		fertiliza()
+		_fertiliza()
 
 def till_ate_soil():
 	while get_ground_type() != Grounds.Soil:
@@ -139,9 +139,9 @@ def cultiva_arado(planta, fertilizante=False):
 	till_ate_soil()
 	if num_unlocked(Unlocks.Plant):
 		plant(planta)
-	agua()
+	_agua()
 	if fertilizante:
-		fertiliza()
+		_fertiliza()
 
 def colhe_e_cultiva(planta, fertilizante=False):
 	colhe()
@@ -152,7 +152,7 @@ def colhe_e_cultiva_arado(planta, fertilizante=False):
 	till_ate_soil()
 	if num_unlocked(Unlocks.Plant):
 		plant(planta)
-	agua()
+	_agua()
 	if fertilizante:
-		fertiliza()
+		_fertiliza()
 
