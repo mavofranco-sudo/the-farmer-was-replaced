@@ -5,22 +5,31 @@ import megafazenda
 
 _fila = None
 
+def _till_ate_soil():
+	while get_ground_type() != Grounds.Soil:
+		till()
+
+def _planta_abobora():
+	_till_ate_soil()
+	if num_unlocked(Unlocks.Plant):
+		plant(Entities.Pumpkin)
+	campo.agua()
+
 # FASE 1: planta em todas as celulas (primeira vez)
 def inicializa():
 	global _fila
 
-	campo.cultiva_arado(Entities.Pumpkin)
+	_planta_abobora()
 	_fila["enfila"]((get_pos_x(), get_pos_y()))
 
 # FASE 2: percorre o campo checando mortas e nao prontas
-# Retorna True se todas estao prontas pra colher (can_harvest)
 def _verifica_celula(x, y):
 	global _fila
 
 	tipo = get_entity_type()
 	if tipo == Entities.Dead_Pumpkin:
 		# replanta em cima da morta (remove automaticamente)
-		campo.cultiva_arado(Entities.Pumpkin)
+		_planta_abobora()
 		_fila["enfila"]((x, y))
 	elif not can_harvest():
 		# ainda crescendo, volta pra fila
