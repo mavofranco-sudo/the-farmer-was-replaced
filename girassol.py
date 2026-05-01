@@ -1,5 +1,4 @@
 import campo
-import gerenciador
 import megafazenda
 
 def _tarefa_plantio():
@@ -8,12 +7,14 @@ def _tarefa_plantio():
 			tipo = get_entity_type()
 			if tipo == None:
 				campo.till_ate_soil()
-				plant(Entities.Sunflower)
+				if num_unlocked(Unlocks.Plant):
+					plant(Entities.Sunflower)
 			elif tipo != Entities.Sunflower:
 				if can_harvest():
 					harvest()
 				campo.till_ate_soil()
-				plant(Entities.Sunflower)
+				if num_unlocked(Unlocks.Plant):
+					plant(Entities.Sunflower)
 			campo._agua()
 		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, planta_celula)
 	return funcao
@@ -60,9 +61,13 @@ def _colhe_por_ordem():
 		if get_entity_type() == Entities.Sunflower and can_harvest():
 			harvest()
 
+def um_ciclo_girassol():
+	"""Planta, espera crescer e colhe um ciclo completo. Sem dependencia de gerenciador."""
+	megafazenda.paraleliza_blocos(_tarefa_plantio())
+	while not _campo_todo_crescido():
+		megafazenda.paraleliza_blocos(_tarefa_espera())
+	_colhe_por_ordem()
+
 def modo_girassol(objetivo):
-	while gerenciador.precisa(Items.Power, objetivo):
-		megafazenda.paraleliza_blocos(_tarefa_plantio())
-		while not _campo_todo_crescido():
-			megafazenda.paraleliza_blocos(_tarefa_espera())
-		_colhe_por_ordem()
+	while num_items(Items.Power) < objetivo:
+		um_ciclo_girassol()
