@@ -49,7 +49,7 @@ def cultiva_e_vota(planta):
 		global _fertilizante
 
 		x, y = get_pos_x(), get_pos_y()
-	
+
 		vencedora = decide_planta(x, y, planta)
 		campo.colhe_e_cultiva(vencedora, _fertilizante)
 		if vencedora == planta:
@@ -57,10 +57,9 @@ def cultiva_e_vota(planta):
 
 	return funcao
 
-def tarefa(recurso, planta, objetivo):
+def tarefa(planta):
 	def funcao():
-		while gerenciador.precisa(recurso, objetivo):
-			campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, cultiva_e_vota(planta))
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, cultiva_e_vota(planta))
 
 	return funcao
 
@@ -79,5 +78,7 @@ def modo_policultura(recurso, planta, objetivo):
 					continue
 				_votos_pra_casa[(x, y)][p] = 0
 
-	megafazenda.paraleliza_blocos(tarefa(recurso, planta, objetivo))
+	while gerenciador.precisa(recurso, objetivo):
+		megafazenda.paraleliza_blocos(tarefa(planta))
+
 	campo.limpa()
