@@ -20,7 +20,6 @@ deltas = {
 def inicializa():
 	global n
 	global metade_n
-
 	n = get_world_size()
 	metade_n = n // 2
 
@@ -38,30 +37,15 @@ def movimento_linha(acao):
 		move(East)
 	acao()
 
-def movimento_bloco(linhas, colunas, acao):
-	dir_horizontal = East
-	dir_vertical = North
-
-	acao()
-	move(dir_vertical)
-
-	for _ in range(colunas - 1):
-		for _ in range(linhas - 2):
+def movimento_bloco(num_linhas, num_colunas, acao):
+	# percorre o bloco com dois for simples, sentido serpentina
+	# garante que todas as celulas do bloco sejam visitadas
+	x0 = get_pos_x()
+	y0 = get_pos_y()
+	for col in range(num_colunas):
+		for lin in range(num_linhas):
+			vai_para(x0 + col, y0 + lin)
 			acao()
-			move(dir_vertical)
-		dir_vertical = opostos[dir_vertical]
-
-		acao()
-		move(dir_horizontal)
-
-	for _ in range(linhas - 1):
-		acao()
-		move(dir_vertical)
-
-	dir_horizontal = opostos[dir_horizontal]
-	for _ in range(colunas - 1):
-		acao()
-		move(dir_horizontal)
 
 def _tarefa_ara():
 	def funcao():
@@ -80,13 +64,11 @@ def _tarefa_limpa():
 def cria_movimento(acao):
 	def funcao():
 		movimento(acao)
-
 	return funcao
 
 def cria_movimento_linha(acao):
 	def funcao():
 		movimento_linha(acao)
-
 	return funcao
 
 def ara():
@@ -113,25 +95,21 @@ def distancia(x1, y1, x2, y2):
 def define_dimensoes(p, p_destino, direcao):
 	if p_destino < p:
 		direcao = opostos[direcao]
-
 	dist = abs(p_destino - p)
 	if dist > metade_n:
 		dist = n - dist
 		direcao = opostos[direcao]
-
 	return [dist, direcao]
 
 def vai_para(x_destino, y_destino):
 	x = get_pos_x()
 	y = get_pos_y()
-
 	dims_h = define_dimensoes(x, x_destino, East)
 	dims_v = define_dimensoes(y, y_destino, North)
 	dist_horizontal = dims_h[0]
 	dir_horizontal = dims_h[1]
 	dist_vertical = dims_v[0]
 	dir_vertical = dims_v[1]
-
 	for _ in range(dist_horizontal):
 		move(dir_horizontal)
 	for _ in range(dist_vertical):
