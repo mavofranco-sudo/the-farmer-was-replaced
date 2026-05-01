@@ -1,5 +1,6 @@
 import campo
 import gerenciador
+import megafazenda
 import fila
 
 _x_maca = 0
@@ -21,10 +22,9 @@ def _bfs_proximo_passo(x_atual, y_atual, x_alvo, y_alvo):
 	q = fila.inicializa()
 
 	for direcao in campo.direcoes:
-		dx = campo.deltas[direcao][0]
-		dy = campo.deltas[direcao][1]
-		nx = x_atual + dx
-		ny = y_atual + dy
+		delta = campo.deltas[direcao]
+		nx = x_atual + delta[0]
+		ny = y_atual + delta[1]
 		if nx < 0 or nx >= campo.n:
 			continue
 		if ny < 0 or ny >= campo.n:
@@ -41,10 +41,9 @@ def _bfs_proximo_passo(x_atual, y_atual, x_alvo, y_alvo):
 		if x == x_alvo and y == y_alvo:
 			return primeira
 		for direcao in campo.direcoes:
-			dx = campo.deltas[direcao][0]
-			dy = campo.deltas[direcao][1]
-			nx = x + dx
-			ny = y + dy
+			delta = campo.deltas[direcao]
+			nx = x + delta[0]
+			ny = y + delta[1]
 			if nx < 0 or nx >= campo.n:
 				continue
 			if ny < 0 or ny >= campo.n:
@@ -103,17 +102,19 @@ def _serpentina():
 			else:
 				direcao_h = East
 
-def _ciclo_dino():
-	campo.vai_para(0, 0)
-	change_hat(Hats.Dinosaur_Hat)
+def _tarefa_dino():
+	def funcao():
+		campo.vai_para(get_pos_x(), get_pos_y())
+		change_hat(Hats.Dinosaur_Hat)
 
-	if _atualiza_maca():
-		_vai_para_maca()
-	else:
-		_serpentina()
+		if _atualiza_maca():
+			_vai_para_maca()
+		else:
+			_serpentina()
 
-	change_hat(Hats.Straw_Hat)
+		change_hat(Hats.Straw_Hat)
+	return funcao
 
 def modo_dinossauro(objetivo):
 	while gerenciador.precisa(Items.Bone, objetivo):
-		_ciclo_dino()
+		megafazenda.paraleliza_blocos(_tarefa_dino())
