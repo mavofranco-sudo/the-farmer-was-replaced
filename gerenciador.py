@@ -12,7 +12,10 @@ _ordem = []
 _recursos = {}
 
 def nivel(conquista):
-	return 2**(num_unlocked(conquista) - 1)
+	n = num_unlocked(conquista)
+	if n == 0:
+		return 1
+	return 2**(n - 1)
 
 def completada(conquista):
 	return not get_cost(conquista)
