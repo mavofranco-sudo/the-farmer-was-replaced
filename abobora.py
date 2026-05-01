@@ -58,7 +58,7 @@ def modo_abobora(objetivo):
 	campo.ara()
 	while gerenciador.precisa(Items.Pumpkin, objetivo):
 		_reabastece()
-		megafazenda.paraleliza_linha(_aguarda_e_replanta)
+		_aguarda_e_replanta()
 		_colhe_mega()
 		campo.ara()
 
