@@ -1,31 +1,26 @@
-_n_chapeus = 0
-_chapeus = []
-
 _chapeus_bloqueados = [Hats.Dinosaur_Hat]
 
-def inicializa():
-	global _n_chapeus
-	global _chapeus
-
-	_chapeus = []
+def lista_chapeus_disponiveis():
+	disponiveis = []
 	for chapeu in Hats:
 		if chapeu in _chapeus_bloqueados:
 			continue
 		if num_unlocked(chapeu):
-			_chapeus.append(chapeu)
-
-	_n_chapeus = len(_chapeus)
-
-def tem_chapeu():
-	return _n_chapeus > 0
+			disponiveis.append(chapeu)
+	return disponiveis
 
 def usa():
-	if not tem_chapeu():
+	disponiveis = lista_chapeus_disponiveis()
+	if not disponiveis:
 		return
-	indice = (_n_chapeus - 1) * random() // 1
-	if indice >= _n_chapeus:
-		indice = _n_chapeus - 1
-	change_hat(_chapeus[indice])
+	n = len(disponiveis)
+	indice = (n - 1) * random() // 1
+	if indice >= n:
+		indice = n - 1
+	change_hat(disponiveis[indice])
+
+def inicializa():
+	pass
 
 def usa_e_faz(acao):
 	def funcao():
