@@ -134,11 +134,15 @@ def precisa(recurso, objetivo):
 def farma_recurso(recurso, objetivo):
 	global _recursos
 	if not precisa(recurso, objetivo):
+		print("    [skip] " + str(recurso) + " ja tem " + str(num_items(recurso)) + "/" + str(objetivo))
 		return
 	if not pode_produzir(recurso):
+		print("    [skip] " + str(recurso) + " nao pode produzir ainda")
 		return
+	print("    [farma] " + str(recurso) + " de " + str(num_items(recurso)) + " ate " + str(objetivo))
 	dados = _recursos[recurso]
 	dados["cultivo"](objetivo)
+	print("    [ok] " + str(recurso) + " = " + str(num_items(recurso)))
 
 def farma_custo(custo):
 	global _ordem
