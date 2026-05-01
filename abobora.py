@@ -4,51 +4,31 @@ import policultura
 
 _CUSTO_SEMENTE = 512
 
-def _tarefa_planta_e_cuida():
-	def funcao():
-		def trata_celula():
-			tipo = get_entity_type()
-			if tipo == None:
-				if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-					campo.till_ate_soil()
-					if num_unlocked(Unlocks.Plant):
-						plant(Entities.Pumpkin)
-				campo._agua()
-			elif tipo == Entities.Dead_Pumpkin:
-				harvest()
-				if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-					campo.till_ate_soil()
-					if num_unlocked(Unlocks.Plant):
-						plant(Entities.Pumpkin)
-				campo._agua()
-			elif tipo == Entities.Pumpkin:
-				if not can_harvest():
-					campo._agua()
-		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, trata_celula)
-	return funcao
+def _trata_celula():
+	tipo = get_entity_type()
+	if tipo == None:
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			campo.till_ate_soil()
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+	elif tipo == Entities.Dead_Pumpkin:
+		harvest()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			campo.till_ate_soil()
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+	elif tipo == Entities.Pumpkin:
+		if not can_harvest():
+			campo._agua()
 
-def _conta_campo():
-	tam = get_world_size()
-	total = 0
-	prontas = 0
-	vazias = 0
-	mortas = 0
-	crescendo = 0
-	for i in range(tam):
-		for j in range(tam):
-			campo.vai_para(i, j)
-			tipo = get_entity_type()
-			total += 1
-			if tipo == None:
-				vazias += 1
-			elif tipo == Entities.Dead_Pumpkin:
-				mortas += 1
-			elif tipo == Entities.Pumpkin:
-				if can_harvest():
-					prontas += 1
-				else:
-					crescendo += 1
-	return [total, prontas, crescendo, mortas, vazias]
+def _colhe_celula():
+	if get_entity_type() == Entities.Pumpkin and can_harvest():
+		harvest()
+
+def _ara_celula():
+	till()
 
 def _todas_prontas():
 	tam = get_world_size()
@@ -63,14 +43,6 @@ def _todas_prontas():
 			if tipo == Entities.Pumpkin and not can_harvest():
 				return False
 	return True
-
-def _tarefa_colhe_tudo():
-	def funcao():
-		def colhe():
-			if get_entity_type() == Entities.Pumpkin and can_harvest():
-				harvest()
-		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, colhe)
-	return funcao
 
 def _noop():
 	pass
@@ -98,25 +70,20 @@ def _reabastece_insumos():
 def modo_abobora(objetivo):
 	campo.inicializa()
 	megafazenda.inicializa()
-	campo.ara()
+	megafazenda.paraleliza_blocos(_ara_celula)
 	ciclo = 0
 	while num_items(Items.Pumpkin) < objetivo:
 		ciclo += 1
 		campo.inicializa()
 		megafazenda.inicializa()
 		print("    [abobora] ciclo=" + str(ciclo) + " n=" + str(get_world_size()) +
-			" bloco=" + str(megafazenda.colunas) + "x" + str(megafazenda.linhas) +
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
-		megafazenda.paraleliza_blocos(_tarefa_planta_e_cuida())
-		contagem = _conta_campo()
-		print("    [abobora] apos plantar: total=" + str(contagem[0]) +
-			" prontas=" + str(contagem[1]) + " crescendo=" + str(contagem[2]) +
-			" mortas=" + str(contagem[3]) + " vazias=" + str(contagem[4]))
-		espera = 0
+		megafazenda.paraleliza_blocos(_trata_celula)
+		esperas = 0
 		while not _todas_prontas():
-			espera += 1
-			megafazenda.paraleliza_blocos(_tarefa_planta_e_cuida())
-		print("    [abobora] campo pronto apos " + str(espera) + " esperas")
-		megafazenda.paraleliza_blocos(_tarefa_colhe_tudo())
-		campo.ara()
+			esperas += 1
+			megafazenda.paraleliza_blocos(_trata_celula)
+		print("    [abobora] pronto apos " + str(esperas) + " esperas")
+		megafazenda.paraleliza_blocos(_colhe_celula)
+		megafazenda.paraleliza_blocos(_ara_celula)
