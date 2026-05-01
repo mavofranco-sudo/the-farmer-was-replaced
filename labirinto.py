@@ -22,11 +22,16 @@ def dfs(x, y):
 
 	direcoes = []
 	for direcao in campo.direcoes:
-		x_proximo, y_proximo = campo.proximo(x, y, direcao)
-		direcoes.append((campo.distancia(x_proximo, y_proximo, _x_tesouro, _y_tesouro), direcao, x_proximo, y_proximo))
+		proximo = campo.proximo(x, y, direcao)
+		x_proximo = proximo[0]
+		y_proximo = proximo[1]
+		direcoes.append([campo.distancia(x_proximo, y_proximo, _x_tesouro, _y_tesouro), direcao, x_proximo, y_proximo])
 	util.insertion_sort(direcoes, comp)
 
-	for _, direcao, x_proximo, y_proximo in direcoes:
+	for item in direcoes:
+		direcao = item[1]
+		x_proximo = item[2]
+		y_proximo = item[3]
 		if can_move(direcao) and (x_proximo, y_proximo) not in _visitados:
 			move(direcao)
 			if dfs(x_proximo, y_proximo):
@@ -50,6 +55,9 @@ def tarefa(objetivo):
 			campo.cultiva(Entities.Bush)
 
 			for _ in range(301):
+				if num_items(Items.Weird_Substance) < custo:
+					gerenciador.farma_recurso(Items.Weird_Substance, custo * 10)
+
 				if num_items(Items.Weird_Substance) >= custo:
 					use_item(Items.Weird_Substance, custo)
 
@@ -57,7 +65,8 @@ def tarefa(objetivo):
 				if resultado == None:
 					continue
 
-				x, y = get_pos_x(), get_pos_y()
+				x = get_pos_x()
+				y = get_pos_y()
 				_visitados = set()
 				_x_tesouro = resultado[0]
 				_y_tesouro = resultado[1]
