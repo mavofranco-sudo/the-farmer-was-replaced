@@ -59,14 +59,45 @@ def vota(x, y):
 	_voto_por_casa[(x, y)] = [candidata, x_candidata, y_candidata]
 	_votos_pra_casa[(x_candidata, y_candidata)][candidata] += 1
 
-def _e_solo_soil():
-	return get_ground_type() == Grounds.Soil
-
 def _precisa_de_soil(planta):
 	for p in _precisa_soil:
 		if p == planta:
 			return True
 	return False
+
+def _regenera_solo_celula():
+	# colhe o que tiver e nao faz till - deixa solo como Grassland
+	if get_entity_type() != None and can_harvest():
+		harvest()
+
+def _regenera_solo_campo():
+	# varre o campo colhendo tudo sem fazer till
+	# isso desfaz qualquer Soil residual plantando/colhendo Grass
+	tam = get_world_size()
+	for x in range(tam):
+		for y in range(tam):
+			campo.vai_para(x, y)
+			# se tem planta, colhe
+			if get_entity_type() != None and can_harvest():
+				harvest()
+			# se solo e Soil, planta Grass para regenerar
+			if get_ground_type() == Grounds.Soil:
+				plant(Entities.Grass)
+
+	# segundo passo: colhe as Grass que plantamos
+	precisa_mais = True
+	while precisa_mais:
+		precisa_mais = False
+		for x in range(tam):
+			for y in range(tam):
+				campo.vai_para(x, y)
+				tipo = get_entity_type()
+				if tipo != None:
+					if can_harvest():
+						harvest()
+					else:
+						precisa_mais = True
+						campo._agua()
 
 def _cultiva_celula(planta):
 	global _fertilizante
@@ -83,24 +114,14 @@ def _cultiva_celula(planta):
 			campo._agua()
 			return
 
-	# sem entidade no chao agora
 	if _precisa_de_soil(vencedora):
-		# precisa de Soil - faz till se ainda for Grassland
-		if not _e_solo_soil():
+		if get_ground_type() != Grounds.Soil:
 			till()
-		if num_unlocked(Unlocks.Plant):
-			plant(vencedora)
-	else:
-		# Grass, Bush, Tree precisam de Grassland
-		if _e_solo_soil():
-			# solo em Soil: planta Grass para regenerar para Grassland
-			# Grass cresce em Soil e ao colher converte de volta
-			plant(Entities.Grass)
-			campo._agua()
-			return
-		# solo ja e Grassland, planta normalmente
-		if num_unlocked(Unlocks.Plant):
-			plant(vencedora)
+	# Grassland: nao faz till, planta diretamente
+	# se solo ainda for Soil, nao planta (sera resolvido pelo proximo ciclo apos regeneracao)
+
+	if num_unlocked(Unlocks.Plant):
+		plant(vencedora)
 
 	campo._agua()
 	if usa_consumivel:
@@ -130,8 +151,22 @@ def inicializa_estado(recurso, planta):
 					continue
 				_votos_pra_casa[(x, y)][p] = 0
 
+def _precisa_grassland(planta):
+	# verifica se a planta precisa de Grassland (nao Soil)
+	if planta == Entities.Grass:
+		return True
+	if planta == Entities.Bush:
+		return True
+	if planta == Entities.Tree:
+		return True
+	return False
+
 def modo_policultura(recurso, planta, objetivo):
 	inicializa_estado(recurso, planta)
+	# se planta precisa de Grassland, regenera o solo antes
+	if _precisa_grassland(planta):
+		print("    [poli] regenerando solo para " + str(planta))
+		_regenera_solo_campo()
 	ciclo = 0
 	while gerenciador.precisa(recurso, objetivo):
 		ciclo += 1
@@ -146,6 +181,9 @@ def modo_policultura(recurso, planta, objetivo):
 
 def modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece):
 	inicializa_estado(recurso, planta)
+	if _precisa_grassland(planta):
+		print("    [poli] regenerando solo para " + str(planta))
+		_regenera_solo_campo()
 	ciclo = 0
 	while gerenciador.precisa(recurso, objetivo):
 		ciclo += 1
