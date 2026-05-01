@@ -3,7 +3,8 @@ def inicializa():
 
 def usa():
 	if num_unlocked(Unlocks.Dinosaurs) > 0:
-		change_hat(Hats.Straw_Hat)
+		chapeu = getattr(Hats, "Straw_Hat")
+		change_hat(chapeu)
 
 def usa_e_faz(acao):
 	def funcao():
