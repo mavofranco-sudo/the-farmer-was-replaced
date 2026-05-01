@@ -132,12 +132,14 @@ def cultiva(planta, fertilizante=False):
 		fertiliza()
 
 def cultiva_arado(planta, fertilizante=False):
-	till()
-	if num_unlocked(Unlocks.Plant):
-		plant(planta)
-	agua()
-	if fertilizante:
-		fertiliza()
+	if get_ground_type() != Grounds.Soil:
+		till()
+	if get_ground_type() == Grounds.Soil:
+		if num_unlocked(Unlocks.Plant):
+			plant(planta)
+		agua()
+		if fertilizante:
+			fertiliza()
 
 def colhe_e_cultiva(planta, fertilizante=False):
 	colhe()
