@@ -18,6 +18,10 @@ def _planta_cacto():
 	if num_items(Items.Water) > 0:
 		use_item(Items.Water)
 
+def _rega_celula():
+	if num_items(Items.Water) > 0:
+		use_item(Items.Water)
+
 def _measure_safe(direcao=None):
 	if direcao == None:
 		val = measure()
@@ -27,9 +31,11 @@ def _measure_safe(direcao=None):
 		return 0
 	return val
 
-def _rega_celula():
-	if num_items(Items.Water) > 0:
-		use_item(Items.Water)
+def _vizinho_maduro(direcao):
+	val = measure(direcao)
+	if val == None:
+		return False
+	return True
 
 def _espera_crescer():
 	pronto = False
@@ -41,12 +47,6 @@ def _espera_crescer():
 				_rega_celula()
 				if not can_harvest():
 					pronto = False
-
-def _vizinho_maduro(direcao):
-	val = measure(direcao)
-	if val == None:
-		return False
-	return True
 
 def _ordena_coluna(col):
 	trocou = True
@@ -75,21 +75,45 @@ def _ordena_campo():
 		for lin in range(campo.n):
 			_ordena_linha(lin)
 
-def _planta_campo():
-	def acao():
-		_planta_cacto()
-	campo.movimento(acao)
-
 def _limpa_campo():
-	# colhe tudo que estiver no campo antes de plantar cactos
 	def acao():
 		if get_entity_type() != None:
 			if can_harvest():
 				harvest()
 	campo.movimento(acao)
 
+def _planta_campo():
+	def acao():
+		_planta_cacto()
+	campo.movimento(acao)
+
+def _ciclo_cacto():
+	# planta o que der com as sementes disponiveis
+	def acao():
+		if _celula_vazia() and num_items(Items.Cactus) > 0:
+			_till_ate_soil()
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Cactus)
+			if num_items(Items.Water) > 0:
+				use_item(Items.Water)
+	campo.movimento(acao)
+	_espera_crescer()
+	_ordena_campo()
+	campo.vai_para(0, 0)
+	harvest()
+
+def _reabastece_sementes():
+	# precisa de n*n sementes para plantar o campo todo
+	minimo = campo.n * campo.n + 10
+	tentativas = 0
+	while num_items(Items.Cactus) < minimo and tentativas < 10:
+		tentativas = tentativas + 1
+		_limpa_campo()
+		_ciclo_cacto()
+
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
+		_reabastece_sementes()
 		_limpa_campo()
 		_planta_campo()
 		_espera_crescer()
