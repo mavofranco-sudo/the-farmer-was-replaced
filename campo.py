@@ -130,7 +130,19 @@ def cultiva(planta, fertilizante=False):
 	if fertilizante:
 		fertiliza()
 
+def cultiva_arado(planta, fertilizante=False):
+	till()
+	if num_unlocked(Unlocks.Plant):
+		plant(planta)
+	agua()
+	if fertilizante:
+		fertiliza()
+
 def colhe_e_cultiva(planta, fertilizante=False):
 	colhe()
 	cultiva(planta, fertilizante)
+
+def colhe_e_cultiva_arado(planta, fertilizante=False):
+	colhe()
+	cultiva_arado(planta, fertilizante)
 
