@@ -41,8 +41,14 @@ def pode_produzir(recurso):
 	return True
 
 def _buffer_power():
+	# minimo baseado em acoes por ciclo
 	acoes_por_ciclo = campo.n * campo.n * 3
-	return acoes_por_ciclo // 30 + 50
+	minimo_base = acoes_por_ciclo // 30 + 50
+	# buffer = 10x o que esta em estoque agora, ou o minimo base, o que for maior
+	buffer_10x = num_items(Items.Power) * 10
+	if buffer_10x > minimo_base:
+		return buffer_10x
+	return minimo_base
 
 def reabastece_power():
 	if not pode_produzir(Items.Power):
@@ -155,3 +161,4 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
+
