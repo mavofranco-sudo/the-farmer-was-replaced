@@ -1,48 +1,57 @@
 import campo
 import gerenciador
 import megafazenda
-import util
 
-_visitados = set()
 _x_tesouro = 0
 _y_tesouro = 0
 
-def comp(a, b):
-	return a[0] > b[0]
-
-def dfs(x, y):
-	global _visitados
+def _navega_para_tesouro(x_ini, y_ini):
 	global _x_tesouro
 	global _y_tesouro
 
-	_visitados.add((x, y))
+	visitados = set()
+	visitados.add((x_ini, y_ini))
 
-	if get_entity_type() == Entities.Treasure:
-		return True
+	# pilha: [x, y, indice_direcao, caminho_de_volta]
+	pilha = [[x_ini, y_ini, 0, []]]
 
-	direcoes = []
-	for direcao in campo.direcoes:
+	while len(pilha) > 0:
+		topo = pilha[len(pilha) - 1]
+		x = topo[0]
+		y = topo[1]
+		idx = topo[2]
+		caminho = topo[3]
+
+		if get_entity_type() == Entities.Treasure:
+			return True
+
+		if idx >= len(campo.direcoes):
+			# backtrack
+			pilha.pop()
+			if len(caminho) > 0:
+				move(caminho[len(caminho) - 1])
+			continue
+
+		topo[2] = idx + 1
+
+		direcao = campo.direcoes[idx]
 		proximo = campo.proximo(x, y, direcao)
-		x_proximo = proximo[0]
-		y_proximo = proximo[1]
-		direcoes.append([campo.distancia(x_proximo, y_proximo, _x_tesouro, _y_tesouro), direcao, x_proximo, y_proximo])
-	util.insertion_sort(direcoes, comp)
+		x_p = proximo[0]
+		y_p = proximo[1]
 
-	for item in direcoes:
-		direcao = item[1]
-		x_proximo = item[2]
-		y_proximo = item[3]
-		if can_move(direcao) and (x_proximo, y_proximo) not in _visitados:
-			move(direcao)
-			if dfs(x_proximo, y_proximo):
-				return True
-			move(campo.opostos[direcao])
+		if not can_move(direcao):
+			continue
+		if (x_p, y_p) in visitados:
+			continue
+
+		visitados.add((x_p, y_p))
+		move(direcao)
+		pilha.append([x_p, y_p, 0, [campo.opostos[direcao]]])
 
 	return False
 
 def tarefa(objetivo):
 	def funcao():
-		global _visitados
 		global _x_tesouro
 		global _y_tesouro
 
@@ -67,10 +76,9 @@ def tarefa(objetivo):
 
 				x = get_pos_x()
 				y = get_pos_y()
-				_visitados = set()
 				_x_tesouro = resultado[0]
 				_y_tesouro = resultado[1]
-				dfs(x, y)
+				_navega_para_tesouro(x, y)
 			harvest()
 
 	return funcao
