@@ -13,6 +13,12 @@ def cria_modo_policultura(recurso, planta):
 
 	return funcao
 
+def cria_modo_policultura_com_reabastecimento(recurso, planta, reabastece):
+	def funcao(objetivo):
+		modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece)
+
+	return funcao
+
 def decide_planta(x, y, planta):
 	global _voto_por_casa
 	global _votos_pra_casa
@@ -84,5 +90,12 @@ def inicializa_estado(recurso, planta):
 def modo_policultura(recurso, planta, objetivo):
 	inicializa_estado(recurso, planta)
 	while gerenciador.precisa(recurso, objetivo):
+		megafazenda.paraleliza_blocos(tarefa(planta))
+	campo.limpa()
+
+def modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece):
+	inicializa_estado(recurso, planta)
+	while gerenciador.precisa(recurso, objetivo):
+		reabastece()
 		megafazenda.paraleliza_blocos(tarefa(planta))
 	campo.limpa()
