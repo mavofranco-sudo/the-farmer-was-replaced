@@ -1,5 +1,6 @@
 import campo
 import chapeus
+import dinossauro
 import gerenciador
 import megafazenda
 
@@ -11,6 +12,9 @@ def inicializa(conquista=None):
 
 	if conquista == Unlocks.Expand:
 		campo.ara()
+
+	if num_unlocked(Unlocks.Dinosaurs) > 0:
+		dinossauro.configura_hats(Hats.Dinosaur_Hat, Hats.Straw_Hat)
 
 def desbloqueia(conquista):
 	custo = get_cost(conquista)
@@ -31,42 +35,42 @@ ordem = [
 	# fase 1: base
 	Unlocks.Speed,
 	Unlocks.Plant,
-	Unlocks.Grass,          # multiplicador hay nivel 1
+	Unlocks.Grass,
 	Unlocks.Expand,
 	Unlocks.Expand,
 	Unlocks.Speed,
-	Unlocks.Grass,          # multiplicador hay nivel 2
-	Unlocks.Carrots,        # OBRIGATORIO antes de Trees (Trees custa cenoura)
+	Unlocks.Grass,
+	Unlocks.Carrots,
 	Unlocks.Trees,
-	Unlocks.Trees,          # multiplicador wood nivel 2
-	Unlocks.Carrots,        # multiplicador cenoura nivel 2
+	Unlocks.Trees,
+	Unlocks.Carrots,
 	Unlocks.Expand,
 	Unlocks.Speed,
 	Unlocks.Expand,
 	Unlocks.Watering,
 	Unlocks.Watering,
-	Unlocks.Watering,       # nivel 3
-	Unlocks.Grass,          # nivel 3
-	Unlocks.Carrots,        # nivel 3
+	Unlocks.Watering,
+	Unlocks.Grass,
+	Unlocks.Carrots,
 	Unlocks.Sunflowers,
 	Unlocks.Fertilizer,
-	Unlocks.Fertilizer,     # nivel 2
-	Unlocks.Watering,       # nivel 4
+	Unlocks.Fertilizer,
+	Unlocks.Watering,
 	Unlocks.Speed,
 	Unlocks.Pumpkins,
-	Unlocks.Watering,       # nivel 5
+	Unlocks.Watering,
 	Unlocks.Polyculture,
 	Unlocks.Speed,
 	Unlocks.Expand,
-	Unlocks.Fertilizer,     # nivel 3
-	Unlocks.Trees,          # nivel 3
-	Unlocks.Grass,          # nivel 4
+	Unlocks.Fertilizer,
+	Unlocks.Trees,
+	Unlocks.Grass,
 	Unlocks.Mazes,
 	Unlocks.Megafarm,
-	Unlocks.Trees,          # nivel 4
-	Unlocks.Trees,          # nivel 5
-	Unlocks.Carrots,        # nivel 4
-	Unlocks.Watering,       # nivel 6
+	Unlocks.Trees,
+	Unlocks.Trees,
+	Unlocks.Carrots,
+	Unlocks.Watering,
 	Unlocks.Pumpkins,
 	Unlocks.Pumpkins,
 	Unlocks.Expand,
@@ -78,8 +82,8 @@ ordem = [
 	Unlocks.Mazes,
 	Unlocks.Megafarm,
 	Unlocks.Megafarm,
-	Unlocks.Grass,          # nivel 5
-	Unlocks.Trees,          # nivel 6
+	Unlocks.Grass,
+	Unlocks.Trees,
 	Unlocks.Fertilizer,
 	Unlocks.Fertilizer,
 	Unlocks.Watering,
@@ -100,4 +104,3 @@ ordem = [
 
 for conquista in ordem:
 	desbloqueia(conquista)
-
