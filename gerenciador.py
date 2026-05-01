@@ -206,16 +206,14 @@ def conquista_alcancavel(conquista):
 	return True
 
 def escolha_conquista(conquistas):
-	disponiveis = [c for c in conquistas if conquista_alcancavel(c)]
-	if not disponiveis:
-		return None
+	melhor_conquista = None
+	menor_custo = -1
 
-	melhor_conquista = disponiveis[0]
-	menor_custo = calcula_energia(get_cost(disponiveis[0]))
-
-	for conquista in disponiveis:
+	for conquista in conquistas:
+		if not conquista_alcancavel(conquista):
+			continue
 		custo = calcula_energia(get_cost(conquista))
-		if custo < menor_custo:
+		if melhor_conquista is None or custo < menor_custo:
 			menor_custo = custo
 			melhor_conquista = conquista
 
