@@ -46,6 +46,10 @@ def _cultivo_wood(objetivo):
 	else:
 		policultura.cria_modo_policultura(Items.Wood, Entities.Tree)(objetivo)
 
+def _cultivo_carrot(objetivo):
+	campo.ara()
+	policultura.cria_modo_policultura(Items.Carrot, Entities.Carrot)(objetivo)
+
 def inicializa():
 	global _ordem
 	global _recursos
@@ -65,7 +69,7 @@ def inicializa():
 			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Trees) * 3 * campo.n * campo.n) // 2))
 		},
 		Items.Carrot: {
-			"cultivo": policultura.cria_modo_policultura(Items.Carrot, Entities.Carrot),
+			"cultivo": _cultivo_carrot,
 			"producao_ciclo": producao_segura((nivel(Unlocks.Polyculture) + 1) * ((nivel(Unlocks.Carrots) * campo.n * campo.n) // 2))
 		},
 		Items.Pumpkin: {
