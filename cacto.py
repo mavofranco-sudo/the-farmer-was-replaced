@@ -1,5 +1,4 @@
 import campo
-import gerenciador
 import megafazenda
 
 def _tarefa_limpa():
@@ -13,6 +12,8 @@ def _tarefa_limpa():
 def _tarefa_planta():
 	def funcao():
 		def planta_cacto():
+			if num_items(Items.Cactus) == 0:
+				return
 			tipo = get_entity_type()
 			if tipo != None:
 				if can_harvest():
@@ -57,9 +58,8 @@ def _ordena_coluna(col):
 		for j in range(campo.n - 1):
 			campo.vai_para(col, j)
 			v_atual = _measure_safe()
-			v_norte = _measure_safe(North)
 			vizinho_existe = measure(North) != None
-			if vizinho_existe and v_atual > v_norte:
+			if vizinho_existe and v_atual > _measure_safe(North):
 				swap(North)
 				trocou = True
 
@@ -70,9 +70,8 @@ def _ordena_linha(lin):
 		for j in range(campo.n - 1):
 			campo.vai_para(j, lin)
 			v_atual = _measure_safe()
-			v_leste = _measure_safe(East)
 			vizinho_existe = measure(East) != None
-			if vizinho_existe and v_atual > v_leste:
+			if vizinho_existe and v_atual > _measure_safe(East):
 				swap(East)
 				trocou = True
 
@@ -83,8 +82,11 @@ def _ordena_campo():
 		for lin in range(campo.n):
 			_ordena_linha(lin)
 
+def tem_cactos_suficientes():
+	return num_items(Items.Cactus) >= campo.n * campo.n
+
 def modo_cacto(objetivo):
-	while gerenciador.precisa(Items.Cactus, objetivo):
+	while num_items(Items.Cactus) < objetivo:
 		megafazenda.paraleliza_blocos(_tarefa_limpa())
 		megafazenda.paraleliza_blocos(_tarefa_planta())
 		while not _campo_todo_crescido():
