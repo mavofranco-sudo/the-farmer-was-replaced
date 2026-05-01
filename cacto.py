@@ -26,13 +26,31 @@ def _rega_celula():
 	if num_items(Items.Water) > 0:
 		use_item(Items.Water)
 
+def _espera_crescer():
+	pronto = False
+	while not pronto:
+		pronto = True
+		for x in range(campo.n):
+			for y in range(campo.n):
+				campo.vai_para(x, y)
+				_rega_celula()
+				if not can_harvest():
+					pronto = False
+
+def _vizinho_maduro(direcao):
+	# measure retorna None se nao tem cacto ou nao esta maduro
+	val = measure(direcao)
+	if val == None:
+		return False
+	return True
+
 def _ordena_coluna(col):
 	trocou = True
 	while trocou:
 		trocou = False
 		for j in range(campo.n - 1):
 			campo.vai_para(col, j)
-			if _measure_safe() > _measure_safe(North):
+			if _vizinho_maduro(North) and _measure_safe() > _measure_safe(North):
 				swap(North)
 				trocou = True
 
@@ -42,7 +60,7 @@ def _ordena_linha(lin):
 		trocou = False
 		for j in range(campo.n - 1):
 			campo.vai_para(j, lin)
-			if _measure_safe() > _measure_safe(East):
+			if _vizinho_maduro(East) and _measure_safe() > _measure_safe(East):
 				swap(East)
 				trocou = True
 
@@ -57,18 +75,6 @@ def _planta_campo():
 	def acao():
 		_planta_cacto()
 	campo.movimento(acao)
-
-def _espera_crescer():
-	# loop: rega tudo e verifica se todos podem ser colhidos
-	pronto = False
-	while not pronto:
-		pronto = True
-		for x in range(campo.n):
-			for y in range(campo.n):
-				campo.vai_para(x, y)
-				_rega_celula()
-				if not can_harvest():
-					pronto = False
 
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
