@@ -63,16 +63,16 @@ def _cultiva_celula(planta):
 	vencedora = decide_planta(x, y, planta)
 	usa_consumivel = _fertilizante and vencedora not in _sem_consumivel
 
-	# sempre garante solo antes de plantar qualquer coisa
 	tipo_atual = get_entity_type()
 	if tipo_atual != None:
 		if can_harvest():
 			harvest()
 		else:
+			# ainda crescendo - so rega e sai
 			campo._agua()
 			return
 
-	# qualquer planta precisa de soil - nao deixa grassland nunca
+	# garante soil antes de plantar
 	campo.till_ate_soil()
 
 	if num_unlocked(Unlocks.Plant):
@@ -108,13 +108,29 @@ def inicializa_estado(recurso, planta):
 
 def modo_policultura(recurso, planta, objetivo):
 	inicializa_estado(recurso, planta)
+	ciclo = 0
 	while gerenciador.precisa(recurso, objetivo):
+		ciclo += 1
+		antes = num_items(recurso)
 		megafazenda.paraleliza_blocos(cultiva_e_vota(planta))
+		depois = num_items(recurso)
+		if ciclo % 10 == 1:
+			print("    [poli] " + str(recurso) + " ciclo=" + str(ciclo) +
+				" antes=" + str(antes) + " depois=" + str(depois) +
+				" obj=" + str(objetivo))
 	campo.limpa()
 
 def modo_policultura_com_reabastecimento(recurso, planta, objetivo, reabastece):
 	inicializa_estado(recurso, planta)
+	ciclo = 0
 	while gerenciador.precisa(recurso, objetivo):
+		ciclo += 1
+		antes = num_items(recurso)
 		reabastece()
 		megafazenda.paraleliza_blocos(cultiva_e_vota(planta))
+		depois = num_items(recurso)
+		if ciclo % 10 == 1:
+			print("    [poli] " + str(recurso) + " ciclo=" + str(ciclo) +
+				" antes=" + str(antes) + " depois=" + str(depois) +
+				" obj=" + str(objetivo))
 	campo.limpa()
