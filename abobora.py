@@ -61,14 +61,45 @@ def _replanta_celula():
 			plant(Entities.Pumpkin)
 	campo._agua()
 
-def _verifica_celula():
-	# cada drone marca _tem_problema se achou celula nao pronta
+def _verifica_e_trata_celula():
+	# cada drone: se achou problema ja resolve e marca flag para novo repasse
 	tipo = get_entity_type()
 	if tipo == None:
+		# celula vazia: ara e replanta
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
 		_tem_problema[0] = True
 	elif tipo == Entities.Dead_Pumpkin:
+		# abobora morta: colhe, ara e replanta
+		harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
 		_tem_problema[0] = True
 	elif tipo == Entities.Pumpkin and not can_harvest():
+		# abobora crescendo: rega e marca que ainda nao esta pronta
+		campo._agua()
+		_tem_problema[0] = True
+	elif tipo == Entities.Pumpkin and can_harvest():
+		# abobora madura: ok, nao marca problema
+		pass
+	else:
+		# entidade estranha: limpa e replanta
+		if can_harvest():
+			harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
 		_tem_problema[0] = True
 
 def _limpa_nao_abobora():
@@ -84,9 +115,10 @@ def _ara_celula():
 	till()
 
 def _todas_prontas_paralelo():
-	# reseta flag e manda todos os drones verificar em paralelo
+	# reseta flag e manda todos os drones verificar+tratar em paralelo
+	# se qualquer drone achou e corrigiu um problema, retorna False (precisa repassar)
 	_tem_problema[0] = False
-	megafazenda.paraleliza_blocos(_verifica_celula)
+	megafazenda.paraleliza_blocos(_verifica_e_trata_celula)
 	return not _tem_problema[0]
 
 def _noop():
@@ -126,12 +158,12 @@ def modo_abobora(objetivo):
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
 		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
-		megafazenda.paraleliza_blocos(_trata_celula)
+		# repasses: cada drone verifica sua faixa, trata o que encontrar e marca flag
+		# continua ate todos os drones confirmarem campo 100% pronto
 		esperas = 0
 		while not _todas_prontas_paralelo():
 			esperas += 1
-			megafazenda.paraleliza_blocos(_trata_celula)
-		print("    [abobora] pronto apos " + str(esperas) + " esperas, colhendo...")
+		print("    [abobora] pronto apos " + str(esperas) + " repasses, colhendo...")
 		# fase colheita: todos os drones colhem simultaneamente (garante bonus n²)
 		megafazenda.paraleliza_blocos(_colhe_celula_madura)
 		# fase replantio: ara e replanta (inclusive celulas que ficaram vazias)
