@@ -3,6 +3,9 @@ import chapeus
 import dinossauro
 import gerenciador
 import megafazenda
+import abobora
+import girassol
+import policultura
 
 def inicializa(conquista=None):
 	campo.inicializa()
@@ -27,6 +30,36 @@ def desbloqueia(conquista):
 		do_a_flip()
 		inicializa(conquista)
 		print("<<< concluido: " + str(conquista))
+
+def _prepara_cenouras_para_abobora():
+	# garante cenouras suficientes para um ciclo completo de aboboras
+	n = get_world_size()
+	minimo = 512 * n * n + n * n * 2 + 100
+	if num_items(Items.Carrot) >= minimo:
+		return
+	policultura.cria_modo_policultura_com_reabastecimento(
+		Items.Carrot, Entities.Carrot,
+		lambda: None
+	)(minimo)
+
+def _prepara_power():
+	# garante power antes de comecar cada mega-ciclo
+	if not girassol.tem_cenouras_suficientes():
+		_prepara_cenouras_para_abobora()
+	gerenciador.reabastece_power()
+
+def farm_aboboras_infinito(objetivo):
+	print(">>> MODO FARM: " + str(objetivo) + " aboboras")
+	ciclo = 0
+	while num_items(Items.Pumpkin) < objetivo:
+		ciclo += 1
+		_prepara_power()
+		_prepara_cenouras_para_abobora()
+		print("  [farm] ciclo=" + str(ciclo) +
+			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo) +
+			" power=" + str(num_items(Items.Power)))
+		abobora.modo_abobora(num_items(Items.Pumpkin) + get_world_size() * get_world_size())
+	print(">>> OBJETIVO ATINGIDO: " + str(num_items(Items.Pumpkin)) + " aboboras")
 
 clear()
 inicializa()
@@ -104,3 +137,6 @@ ordem = [
 
 for conquista in ordem:
 	desbloqueia(conquista)
+
+# fase final: farm de 100 milhoes de aboboras
+farm_aboboras_infinito(100000000)
