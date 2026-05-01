@@ -6,14 +6,14 @@ def _tarefa_plantio():
 		def planta_celula():
 			tipo = get_entity_type()
 			if tipo == None:
-				campo.till_ate_soil()
-				if num_unlocked(Unlocks.Plant):
+				if num_items(Items.Sunflower) > 0:
+					campo.till_ate_soil()
 					plant(Entities.Sunflower)
 			elif tipo != Entities.Sunflower:
 				if can_harvest():
 					harvest()
-				campo.till_ate_soil()
-				if num_unlocked(Unlocks.Plant):
+				if num_items(Items.Sunflower) > 0:
+					campo.till_ate_soil()
 					plant(Entities.Sunflower)
 			campo._agua()
 		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, planta_celula)
@@ -35,6 +35,17 @@ def _campo_todo_crescido():
 				return False
 	return True
 
+def _garante_sementes():
+	if num_items(Items.Sunflower) > 0:
+		return
+	for x in range(campo.n):
+		for y in range(campo.n):
+			campo.vai_para(x, y)
+			if get_entity_type() == Entities.Sunflower and can_harvest():
+				harvest()
+				if num_items(Items.Sunflower) > 0:
+					return
+
 def _colhe_por_ordem():
 	petalas = []
 	for x in range(campo.n):
@@ -46,7 +57,6 @@ def _colhe_por_ordem():
 					p = 7
 				petalas.append([p, x, y])
 
-	# insertion sort decrescente
 	for i in range(1, len(petalas)):
 		chave = petalas[i]
 		j = i - 1
@@ -55,13 +65,13 @@ def _colhe_por_ordem():
 			j -= 1
 		petalas[j + 1] = chave
 
-	# colhe maior primeiro para garantir bonus 8x
 	for item in petalas:
 		campo.vai_para(item[1], item[2])
 		if get_entity_type() == Entities.Sunflower and can_harvest():
 			harvest()
 
 def um_ciclo_girassol():
+	_garante_sementes()
 	megafazenda.paraleliza_blocos(_tarefa_plantio())
 	while not _campo_todo_crescido():
 		megafazenda.paraleliza_blocos(_tarefa_espera())
@@ -70,4 +80,3 @@ def um_ciclo_girassol():
 def modo_girassol(objetivo):
 	while num_items(Items.Power) < objetivo:
 		um_ciclo_girassol()
-
