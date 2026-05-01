@@ -14,11 +14,10 @@ def inicializa():
 def verifica(x, y):
 	global _fila
 
-	if not can_harvest():
+	if get_entity_type() == Entities.Dead_Pumpkin:
+		campo.cultiva_arado(Entities.Pumpkin)
+	elif not can_harvest():
 		_fila["enfila"]((x, y))
-
-		if get_entity_type() == Entities.Dead_Pumpkin:
-			campo.colhe_e_cultiva_arado(Entities.Pumpkin)
 
 def tarefa():
 	global _fila
