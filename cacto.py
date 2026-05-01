@@ -6,7 +6,12 @@ def _till_ate_soil():
 	while get_ground_type() != Grounds.Soil:
 		till()
 
+def _celula_vazia():
+	return get_entity_type() == None
+
 def _planta_cacto():
+	if not _celula_vazia():
+		harvest()
 	_till_ate_soil()
 	if num_unlocked(Unlocks.Plant):
 		plant(Entities.Cactus)
@@ -38,7 +43,6 @@ def _espera_crescer():
 					pronto = False
 
 def _vizinho_maduro(direcao):
-	# measure retorna None se nao tem cacto ou nao esta maduro
 	val = measure(direcao)
 	if val == None:
 		return False
@@ -76,8 +80,17 @@ def _planta_campo():
 		_planta_cacto()
 	campo.movimento(acao)
 
+def _limpa_campo():
+	# colhe tudo que estiver no campo antes de plantar cactos
+	def acao():
+		if get_entity_type() != None:
+			if can_harvest():
+				harvest()
+	campo.movimento(acao)
+
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
+		_limpa_campo()
 		_planta_campo()
 		_espera_crescer()
 		_ordena_campo()
