@@ -4,6 +4,9 @@ import policultura
 
 _CUSTO_SEMENTE = 512
 
+# flag mutavel compartilhada entre drones para verificacao paralela
+_tem_problema = [False]
+
 def _trata_celula():
 	tipo = get_entity_type()
 	if tipo == None:
@@ -35,7 +38,6 @@ def _trata_celula():
 		campo._agua()
 
 def _colhe_e_replanta():
-	# colhe abobora madura e replanta imediatamente
 	tipo = get_entity_type()
 	if tipo == Entities.Pumpkin and can_harvest():
 		harvest()
@@ -72,12 +74,15 @@ def _colhe_e_replanta():
 				plant(Entities.Pumpkin)
 		campo._agua()
 
-def _colhe_celula():
-	if get_entity_type() == Entities.Pumpkin and can_harvest():
-		harvest()
-
-def _ara_celula():
-	till()
+def _verifica_celula():
+	# cada drone marca _tem_problema se achou celula nao pronta
+	tipo = get_entity_type()
+	if tipo == None:
+		_tem_problema[0] = True
+	elif tipo == Entities.Dead_Pumpkin:
+		_tem_problema[0] = True
+	elif tipo == Entities.Pumpkin and not can_harvest():
+		_tem_problema[0] = True
 
 def _limpa_nao_abobora():
 	tipo = get_entity_type()
@@ -88,34 +93,14 @@ def _limpa_nao_abobora():
 	if can_harvest():
 		harvest()
 
-def _conta_problemas():
-	# conta celulas que ainda nao estao prontas (sem pumpkin plantada ou morta)
-	# usa paralelismo dos drones via megafazenda
-	problemas = [0]
-	tam = get_world_size()
-	for i in range(tam):
-		for j in range(tam):
-			campo.vai_para(i, j)
-			tipo = get_entity_type()
-			if tipo == None:
-				problemas[0] += 1
-			elif tipo == Entities.Dead_Pumpkin:
-				problemas[0] += 1
-	return problemas[0]
+def _ara_celula():
+	till()
 
-def _todas_prontas():
-	tam = get_world_size()
-	for i in range(tam):
-		for j in range(tam):
-			campo.vai_para(i, j)
-			tipo = get_entity_type()
-			if tipo == None:
-				return False
-			if tipo == Entities.Dead_Pumpkin:
-				return False
-			if tipo == Entities.Pumpkin and not can_harvest():
-				return False
-	return True
+def _todas_prontas_paralelo():
+	# reseta flag e manda todos os drones verificar em paralelo
+	_tem_problema[0] = False
+	megafazenda.paraleliza_blocos(_verifica_celula)
+	return not _tem_problema[0]
 
 def _noop():
 	pass
@@ -156,9 +141,8 @@ def modo_abobora(objetivo):
 		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 		megafazenda.paraleliza_blocos(_trata_celula)
 		esperas = 0
-		while not _todas_prontas():
+		while not _todas_prontas_paralelo():
 			esperas += 1
 			megafazenda.paraleliza_blocos(_trata_celula)
 		print("    [abobora] pronto apos " + str(esperas) + " esperas")
-		# colhe e replanta imediatamente (sem passar por _ara_celula separado)
 		megafazenda.paraleliza_blocos(_colhe_e_replanta)
