@@ -39,7 +39,8 @@ def _aguarda_e_replanta():
 	global _fila
 
 	_fila = fila.inicializa()
-	campo.movimento_linha(inicializa)
+	# percorre campo inteiro (NxN) plantando em cada celula
+	campo.movimento(inicializa)
 
 	# loop ate todas estarem prontas
 	while not _fila["vazia"]():
@@ -47,9 +48,9 @@ def _aguarda_e_replanta():
 		campo.vai_para(x, y)
 		_verifica_celula(x, y)
 
-# FASE 3: colhe a mega abobora (uma unica harvest no campo inteiro)
+# FASE 3: colhe a mega abobora percorrendo o campo inteiro
 def _colhe_mega():
-	campo.movimento_linha(harvest)
+	campo.movimento(harvest)
 
 def _reabastece():
 	custo_por_semente = 512
