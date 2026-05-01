@@ -47,6 +47,9 @@ def _cultivo_wood(objetivo):
 		policultura.cria_modo_policultura(Items.Wood, Entities.Tree)(objetivo)
 
 def _cultivo_carrot(objetivo):
+	buffer = campo.n * campo.n * 2 + 50
+	_cultivo_wood(buffer)
+	policultura.cria_modo_policultura(Items.Hay, Entities.Grass)(buffer)
 	policultura.cria_modo_policultura(Items.Carrot, Entities.Carrot)(objetivo)
 
 def inicializa():
