@@ -34,6 +34,9 @@ def vota(x, y):
 	global _voto_por_casa
 	global _votos_pra_casa
 
+	if not num_unlocked(Unlocks.Polyculture):
+		return
+
 	candidata, (x_candidata, y_candidata) = get_companion()
 	if _voto_por_casa[(x, y)]:
 		candidata_anterior, x_candidata_anterior, y_candidata_anterior = _voto_por_casa[(x, y)]
