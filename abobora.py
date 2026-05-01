@@ -5,16 +5,8 @@ import megafazenda
 
 _fila = None
 
-def _till_ate_soil():
-	while get_ground_type() != Grounds.Soil:
-		till()
-
 def _planta_abobora():
-	_till_ate_soil()
-	if num_unlocked(Unlocks.Plant):
-		plant(Entities.Pumpkin)
-	if num_items(Items.Water) > 0:
-		use_item(Items.Water)
+	campo.cultiva_arado(Entities.Pumpkin)
 
 def inicializa():
 	global _fila
