@@ -1,9 +1,5 @@
 import campo
-import gerenciador
-import fila
 
-_x_maca = 0
-_y_maca = 0
 _hat_dino = [None]
 _hat_normal = [None]
 
@@ -11,115 +7,71 @@ def configura_hats(hat_dino, hat_normal):
 	_hat_dino[0] = hat_dino
 	_hat_normal[0] = hat_normal
 
-def _atualiza_maca():
-	global _x_maca
-	global _y_maca
-	resultado = measure()
-	if resultado == None:
-		return False
-	_x_maca = resultado[0]
-	_y_maca = resultado[1]
-	return True
-
-def _bfs_proximo_passo(x_atual, y_atual, x_alvo, y_alvo):
-	visitados = set()
-	visitados.add((x_atual, y_atual))
-	q = fila.inicializa()
-
-	for direcao in campo.direcoes:
-		delta = campo.deltas[direcao]
-		nx = x_atual + delta[0]
-		ny = y_atual + delta[1]
-		if nx < 0 or nx >= campo.n:
-			continue
-		if ny < 0 or ny >= campo.n:
-			continue
-		if (nx, ny) not in visitados:
-			visitados.add((nx, ny))
-			q["enfila"]([nx, ny, direcao])
-
-	while not q["vazia"]():
-		no = q["desenfila"]()
-		x = no[0]
-		y = no[1]
-		primeira = no[2]
-		if x == x_alvo and y == y_alvo:
-			return primeira
-		for direcao in campo.direcoes:
-			delta = campo.deltas[direcao]
-			nx = x + delta[0]
-			ny = y + delta[1]
-			if nx < 0 or nx >= campo.n:
-				continue
-			if ny < 0 or ny >= campo.n:
-				continue
-			if (nx, ny) not in visitados:
-				visitados.add((nx, ny))
-				q["enfila"]([nx, ny, primeira])
-
-	return None
-
-def _vai_para_maca():
-	sem_progresso = [0]
-	limite = campo.n * campo.n * 2
-
-	while True:
-		x_atual = get_pos_x()
-		y_atual = get_pos_y()
-
-		if x_atual == _x_maca and y_atual == _y_maca:
-			if not _atualiza_maca():
-				return
-			sem_progresso[0] = 0
-
-		direcao = _bfs_proximo_passo(x_atual, y_atual, _x_maca, _y_maca)
-
-		if direcao == None:
-			return
-
-		if not can_move(direcao):
-			moveu = False
-			for d in campo.direcoes:
-				if can_move(d):
-					move(d)
-					moveu = True
-					break
-			if not moveu:
-				return
-			sem_progresso[0] = sem_progresso[0] + 1
-			if sem_progresso[0] > limite:
-				return
+def _gera_rota_hamiltoniana():
+	# Gera caminho hamiltoniano em serpentina que cobre n*n celulas
+	# sem nunca cruzar: sobe col 0, desce col 1, sobe col 2, ...
+	# resultado: lista de [x, y] em ordem de visita
+	n = get_world_size()
+	rota = []
+	for col in range(n):
+		if col % 2 == 0:
+			# sobe: y de 0 ate n-1
+			for lin in range(n):
+				rota.append([col, lin])
 		else:
-			move(direcao)
-			sem_progresso[0] = 0
-
-def _serpentina():
-	direcao_h = East
-	for lin in range(campo.n):
-		for _ in range(campo.n - 1):
-			if not move(direcao_h):
-				return
-		if lin < campo.n - 1:
-			if not move(North):
-				return
-			if direcao_h == East:
-				direcao_h = West
-			else:
-				direcao_h = East
+			# desce: y de n-1 ate 0
+			for lin in range(n - 1, -1, -1):
+				rota.append([col, lin])
+	return rota
 
 def _ciclo_dino():
+	n = get_world_size()
+	# posiciona no canto 0,0
 	campo.vai_para(0, 0)
+
 	if _hat_dino[0] != None:
 		change_hat(_hat_dino[0])
 
-	if _atualiza_maca():
-		_vai_para_maca()
-	else:
-		_serpentina()
+	# percorre toda a rota hamiltoniana
+	# como e serpentina sem cruzamentos, a cauda nunca bloqueia
+	rota = _gera_rota_hamiltoniana()
+	total = len(rota)
 
+	# pula a primeira posicao (ja estamos em 0,0)
+	i = 1
+	while i < total:
+		destino = rota[i]
+		x_dest = destino[0]
+		y_dest = destino[1]
+		x_atual = get_pos_x()
+		y_atual = get_pos_y()
+
+		# calcula direcao para o proximo passo
+		dx = x_dest - x_atual
+		dy = y_dest - y_atual
+
+		if dx == 1:
+			ok = move(East)
+		elif dx == -1:
+			ok = move(West)
+		elif dy == 1:
+			ok = move(North)
+		elif dy == -1:
+			ok = move(South)
+		else:
+			# nao deveria acontecer na serpentina, mas por seguranca
+			ok = True
+
+		if not ok:
+			# cauda bloqueou - nao pode mais crescer, encerra
+			break
+
+		i += 1
+
+	# desequipa o chapeu para colher a cauda (recebe ossos = comprimento^2)
 	if _hat_normal[0] != None:
 		change_hat(_hat_normal[0])
 
 def modo_dinossauro(objetivo):
-	while gerenciador.precisa(Items.Bone, objetivo):
+	while num_items(Items.Bone) < objetivo:
 		_ciclo_dino()
