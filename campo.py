@@ -81,7 +81,8 @@ def ara():
 def colhe():
 	while get_entity_type() and not can_harvest():
 		agua()
-	harvest()
+	if get_entity_type():
+		harvest()
 
 def limpa():
 	megafazenda.paraleliza_linha(cria_movimento_linha(colhe))
@@ -144,5 +145,10 @@ def colhe_e_cultiva(planta, fertilizante=False):
 
 def colhe_e_cultiva_arado(planta, fertilizante=False):
 	colhe()
-	cultiva_arado(planta, fertilizante)
+	till()
+	if num_unlocked(Unlocks.Plant):
+		plant(planta)
+	agua()
+	if fertilizante:
+		fertiliza()
 
