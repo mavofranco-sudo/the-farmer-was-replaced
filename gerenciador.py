@@ -196,9 +196,16 @@ def alcanca_objetivos(objetivos):
 			continue
 		alcanca_objetivos_rec(recurso, objetivos[recurso])
 
+def conquista_alcancavel(conquista):
+	custo = get_cost(conquista)
+	for recurso in custo:
+		if not pode_produzir(recurso):
+			return False
+	return True
+
 def filtra_conquistas(conquistas):
 	for i in range(len(conquistas) - 1, -1, -1):
-		if completada(conquistas[i]):
+		if completada(conquistas[i]) or not conquista_alcancavel(conquistas[i]):
 			conquistas.pop(i)
 
 def escolha_conquista(conquistas):
@@ -216,3 +223,4 @@ def escolha_conquista(conquistas):
 			melhor_conquista = conquista
 
 	return melhor_conquista
+
