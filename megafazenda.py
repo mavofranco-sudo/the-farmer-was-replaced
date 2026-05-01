@@ -6,16 +6,13 @@ n_drones = 0
 linhas = 0
 colunas = 0
 
-_limite_linhas = 0
-_limite_colunas = 0
-
 def inicializa():
 	global n_drones
 	global linhas
 	global colunas
-	global _limite_linhas
-	global _limite_colunas
 
+	# sempre usa get_world_size() direto
+	tam = get_world_size()
 	n_drones = max_drones()
 
 	drones_por_linha = util.sqrt_2(n_drones)
@@ -26,37 +23,29 @@ def inicializa():
 	if drones_por_coluna < 1:
 		drones_por_coluna = 1
 
-	# bloco de cada drone (arredondado para cima para cobrir campo todo)
-	linhas = util.teto_div(campo.n, drones_por_linha)
+	linhas = util.teto_div(tam, drones_por_linha)
 	if linhas < 1:
 		linhas = 1
 
-	colunas = util.teto_div(campo.n, drones_por_coluna)
-	# colunas deve ser par para movimento_bloco funcionar corretamente
+	colunas = util.teto_div(tam, drones_por_coluna)
 	if colunas % 2 == 1:
 		colunas += 1
 	if colunas < 1:
 		colunas = 1
 
-	# limites: quantas celulas o grid de drones cobre
-	# nao pode ultrapassar campo.n
-	_limite_linhas = min(linhas * drones_por_linha, campo.n)
-	_limite_colunas = min(colunas * drones_por_coluna, campo.n)
-
-	print("    [mega] n=" + str(campo.n) + " drones=" + str(n_drones) +
-		" bloco=" + str(colunas) + "x" + str(linhas) +
-		" cobertura=" + str(_limite_colunas) + "x" + str(_limite_linhas))
+	print("    [mega] n=" + str(tam) + " drones=" + str(n_drones) +
+		" bloco=" + str(colunas) + "x" + str(linhas))
 
 def paraleliza_linha(acao, por_linha=True):
 	drones = []
 	resultados = []
+	tam = get_world_size()
 
-	for i in range(campo.n):
+	for i in range(tam):
 		if por_linha:
 			campo.vai_para(0, i)
 		else:
 			campo.vai_para(i, 0)
-
 		drone = spawn_drone(chapeus.usa_e_faz(acao))
 		if drone:
 			drones.append(drone)
@@ -72,18 +61,27 @@ def paraleliza_blocos(acao):
 	drones = []
 	resultados = []
 
+	# usa get_world_size() direto - nunca campo.n que pode estar desatualizado
+	tam = get_world_size()
+	lin = linhas
+	col = colunas
+	if lin < 1:
+		lin = 1
+	if col < 1:
+		col = 1
+
 	x = 0
-	while x < campo.n:
+	while x < tam:
 		y = 0
-		while y < campo.n:
+		while y < tam:
 			campo.vai_para(x, y)
 			drone = spawn_drone(chapeus.usa_e_faz(acao))
 			if drone:
 				drones.append(drone)
 			else:
 				resultados.append(chapeus.usa_e_faz(acao)())
-			y += linhas
-		x += colunas
+			y += lin
+		x += col
 
 	for drone in drones:
 		resultados.append(wait_for(drone))
