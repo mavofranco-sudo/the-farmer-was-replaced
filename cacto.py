@@ -9,15 +9,6 @@ def _till_ate_soil():
 def _celula_vazia():
 	return get_entity_type() == None
 
-def _planta_cacto():
-	if not _celula_vazia():
-		harvest()
-	_till_ate_soil()
-	if num_unlocked(Unlocks.Plant):
-		plant(Entities.Cactus)
-	if num_items(Items.Water) > 0:
-		use_item(Items.Water)
-
 def _rega_celula():
 	if num_items(Items.Water) > 0:
 		use_item(Items.Water)
@@ -82,34 +73,61 @@ def _limpa_campo():
 				harvest()
 	campo.movimento(acao)
 
-def _planta_campo():
+def _planta_n(n_sementes):
+	# planta exatamente n_sementes celulas, nao mais
+	plantados = [0]
 	def acao():
-		_planta_cacto()
+		if plantados[0] >= n_sementes:
+			return
+		if not _celula_vazia():
+			if can_harvest():
+				harvest()
+			else:
+				return
+		_till_ate_soil()
+		if num_unlocked(Unlocks.Plant) and num_items(Items.Cactus) > 0:
+			plant(Entities.Cactus)
+			plantados[0] = plantados[0] + 1
+		if num_items(Items.Water) > 0:
+			use_item(Items.Water)
 	campo.movimento(acao)
 
-def _ciclo_cacto():
-	# planta o que der com as sementes disponiveis
-	def acao():
-		if _celula_vazia() and num_items(Items.Cactus) > 0:
-			_till_ate_soil()
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Cactus)
-			if num_items(Items.Water) > 0:
-				use_item(Items.Water)
-	campo.movimento(acao)
+def _ciclo_com_n(n_celulas):
+	# ciclo completo plantando apenas n_celulas
+	_limpa_campo()
+	_planta_n(n_celulas)
 	_espera_crescer()
 	_ordena_campo()
 	campo.vai_para(0, 0)
 	harvest()
 
 def _reabastece_sementes():
-	# precisa de n*n sementes para plantar o campo todo
-	minimo = campo.n * campo.n + 10
-	tentativas = 0
-	while num_items(Items.Cactus) < minimo and tentativas < 10:
-		tentativas = tentativas + 1
-		_limpa_campo()
-		_ciclo_cacto()
+	# garante que tem celulas suficientes para plantar o campo todo
+	n_celulas = campo.n * campo.n
+	# se nao tem nenhuma semente, comeca com 1 celula e vai dobrando
+	if num_items(Items.Cactus) == 0:
+		# precisa de pelo menos 1 cacto para comecar - erro critico
+		return
+	# planta quantas celulas der com as sementes atuais, em ciclos crescentes
+	while num_items(Items.Cactus) < n_celulas:
+		disponiveis = num_items(Items.Cactus)
+		if disponiveis == 0:
+			return
+		_ciclo_com_n(disponiveis)
+
+def _planta_campo():
+	def acao():
+		if not _celula_vazia():
+			if can_harvest():
+				harvest()
+			else:
+				return
+		_till_ate_soil()
+		if num_unlocked(Unlocks.Plant) and num_items(Items.Cactus) > 0:
+			plant(Entities.Cactus)
+		if num_items(Items.Water) > 0:
+			use_item(Items.Water)
+	campo.movimento(acao)
 
 def modo_cacto(objetivo):
 	while gerenciador.precisa(Items.Cactus, objetivo):
