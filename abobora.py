@@ -28,9 +28,9 @@ def _tarefa_planta_e_cuida():
 	return funcao
 
 def _todas_prontas():
-	for x in range(campo.n):
-		for y in range(campo.n):
-			campo.vai_para(x, y)
+	for i in range(get_world_size()):
+		for j in range(get_world_size()):
+			campo.vai_para(i, j)
 			tipo = get_entity_type()
 			if tipo == None:
 				return False
@@ -52,7 +52,8 @@ def _noop():
 	pass
 
 def _reabastece_insumos():
-	n_celulas = campo.n * campo.n
+	n = get_world_size()
+	n_celulas = n * n
 	minimo_cenouras = _CUSTO_SEMENTE * n_celulas + n_celulas * 2 + 100
 	margem = minimo_cenouras * 2 + 100
 
@@ -71,10 +72,14 @@ def _reabastece_insumos():
 		)(minimo_cenouras)
 
 def modo_abobora(objetivo):
+	# reinicializa sempre que chamado para pegar campo atual
 	campo.inicializa()
 	megafazenda.inicializa()
 	campo.ara()
 	while num_items(Items.Pumpkin) < objetivo:
+		# reinicializa no inicio de cada ciclo para detectar Expand
+		campo.inicializa()
+		megafazenda.inicializa()
 		_reabastece_insumos()
 		megafazenda.paraleliza_blocos(_tarefa_planta_e_cuida())
 		while not _todas_prontas():
