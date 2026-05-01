@@ -1,42 +1,48 @@
 import campo
-import fila
 import gerenciador
 import megafazenda
 
-_fila = None
+def _tarefa_planta():
+	def funcao():
+		def planta_celula():
+			tipo = get_entity_type()
+			if tipo == Entities.Dead_Pumpkin or tipo == None:
+				campo.colhe_e_cultiva_arado(Entities.Pumpkin)
+			elif tipo == Entities.Pumpkin:
+				if can_harvest():
+					harvest()
+					campo.cultiva_arado(Entities.Pumpkin)
+				else:
+					campo._agua()
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, planta_celula)
+	return funcao
 
-def _planta_abobora():
-	campo.cultiva_arado(Entities.Pumpkin)
+def _tarefa_espera():
+	def funcao():
+		def aguarda_e_rega():
+			if get_entity_type() == Entities.Pumpkin and not can_harvest():
+				campo._agua()
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, aguarda_e_rega)
+	return funcao
 
-def inicializa():
-	global _fila
+def _tarefa_colhe():
+	def funcao():
+		def colhe_se_pronto():
+			if get_entity_type() == Entities.Pumpkin and can_harvest():
+				harvest()
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, colhe_se_pronto)
+	return funcao
 
-	_planta_abobora()
-	_fila["enfila"]((get_pos_x(), get_pos_y()))
-
-def _verifica_celula(x, y):
-	global _fila
-
-	tipo = get_entity_type()
-	if tipo == Entities.Dead_Pumpkin:
-		_planta_abobora()
-		_fila["enfila"]((x, y))
-	elif not can_harvest():
-		_fila["enfila"]((x, y))
-
-def _aguarda_e_replanta():
-	global _fila
-
-	_fila = fila.inicializa()
-	campo.movimento(inicializa)
-
-	while not _fila["vazia"]():
-		x, y = _fila["desenfila"]()
-		campo.vai_para(x, y)
-		_verifica_celula(x, y)
-
-def _colhe_mega():
-	campo.movimento(harvest)
+def _campo_todo_crescido():
+	for x in range(campo.n):
+		for y in range(campo.n):
+			campo.vai_para(x, y)
+			tipo = get_entity_type()
+			if tipo == Entities.Pumpkin and not can_harvest():
+				return False
+			if tipo == Entities.Dead_Pumpkin:
+				return False
+	return True
 
 def _reabastece():
 	n_celulas = campo.n * campo.n
@@ -56,6 +62,8 @@ def modo_abobora(objetivo):
 	campo.ara()
 	while gerenciador.precisa(Items.Pumpkin, objetivo):
 		_reabastece()
-		_aguarda_e_replanta()
-		_colhe_mega()
+		megafazenda.paraleliza_blocos(_tarefa_planta())
+		while not _campo_todo_crescido():
+			megafazenda.paraleliza_blocos(_tarefa_espera())
+		megafazenda.paraleliza_blocos(_tarefa_colhe())
 		campo.ara()
