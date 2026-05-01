@@ -107,8 +107,8 @@ def define_dimensoes(p, p_destino, direcao):
 def vai_para(x_destino, y_destino):
 	x, y = get_pos_x(), get_pos_y()
 	
-	dist_horizontal, dir_horizontal = define_dimensoes(get_pos_x(), x_destino, East)
-	dist_vertical, dir_vertical = define_dimensoes(get_pos_y(), y_destino, North)
+	dist_horizontal, dir_horizontal = define_imensoes(get_pos_x(), x_destino, East)
+	dist_vertical, dir_vertical = define_imensoes(get_pos_y(), y_destino, North)
 
 	for _ in range(dist_horizontal):
 		move(dir_horizontal)
@@ -124,7 +124,8 @@ def fertiliza():
 		use_item(Items.Fertilizer)
 
 def cultiva(planta, fertilizante=False):
-	plant(planta)
+	if num_unlocked(Unlocks.Plant):
+		plant(planta)
 	agua()
 	if fertilizante:
 		fertiliza()
