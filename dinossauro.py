@@ -7,68 +7,56 @@ def configura_hats(hat_dino, hat_normal):
 	_hat_dino[0] = hat_dino
 	_hat_normal[0] = hat_normal
 
-def _gera_rota_hamiltoniana():
-	# Gera caminho hamiltoniano em serpentina que cobre n*n celulas
-	# sem nunca cruzar: sobe col 0, desce col 1, sobe col 2, ...
-	# resultado: lista de [x, y] em ordem de visita
-	n = get_world_size()
-	rota = []
-	for col in range(n):
-		if col % 2 == 0:
-			# sobe: y de 0 ate n-1
-			for lin in range(n):
-				rota.append([col, lin])
-		else:
-			# desce: y de n-1 ate 0
-			for lin in range(n - 1, -1, -1):
-				rota.append([col, lin])
-	return rota
-
 def _ciclo_dino():
 	n = get_world_size()
-	# posiciona no canto 0,0
+
+	# posiciona no canto 0,0 ANTES de equipar o chapeu
+	# (com chapeu de dino nao pode atravessar bordas)
 	campo.vai_para(0, 0)
 
 	if _hat_dino[0] != None:
 		change_hat(_hat_dino[0])
 
-	# percorre toda a rota hamiltoniana
-	# como e serpentina sem cruzamentos, a cauda nunca bloqueia
-	rota = _gera_rota_hamiltoniana()
-	total = len(rota)
-
-	# pula a primeira posicao (ja estamos em 0,0)
-	i = 1
-	while i < total:
-		destino = rota[i]
-		x_dest = destino[0]
-		y_dest = destino[1]
-		x_atual = get_pos_x()
-		y_atual = get_pos_y()
-
-		# calcula direcao para o proximo passo
-		dx = x_dest - x_atual
-		dy = y_dest - y_atual
-
-		if dx == 1:
-			ok = move(East)
-		elif dx == -1:
-			ok = move(West)
-		elif dy == 1:
-			ok = move(North)
-		elif dy == -1:
-			ok = move(South)
+	# serpentina com move() relativo - nunca usa vai_para com chapeu
+	# col 0: sobe North (y=0 -> y=n-1)
+	# col 1: desce South (y=n-1 -> y=0)
+	# col 2: sobe North, etc.
+	# entre colunas: move East
+	col = 0
+	while col < n:
+		# percorre a coluna inteira (n-1 passos)
+		if col % 2 == 0:
+			# sobe
+			passos = 0
+			while passos < n - 1:
+				ok = move(North)
+				if not ok:
+					# cauda preencheu tudo, acabou
+					if _hat_normal[0] != None:
+						change_hat(_hat_normal[0])
+					return
+				passos += 1
 		else:
-			# nao deveria acontecer na serpentina, mas por seguranca
-			ok = True
+			# desce
+			passos = 0
+			while passos < n - 1:
+				ok = move(South)
+				if not ok:
+					if _hat_normal[0] != None:
+						change_hat(_hat_normal[0])
+					return
+				passos += 1
 
-		if not ok:
-			# cauda bloqueou - nao pode mais crescer, encerra
-			break
+		# move para proxima coluna (exceto na ultima)
+		col += 1
+		if col < n:
+			ok = move(East)
+			if not ok:
+				if _hat_normal[0] != None:
+					change_hat(_hat_normal[0])
+				return
 
-		i += 1
-
-	# desequipa o chapeu para colher a cauda (recebe ossos = comprimento^2)
+	# desequipa para colher cauda (ossos = comprimento^2)
 	if _hat_normal[0] != None:
 		change_hat(_hat_normal[0])
 
