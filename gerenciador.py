@@ -40,7 +40,24 @@ def pode_produzir(recurso):
 		return num_unlocked(Unlocks.Trees) > 0
 	return True
 
+def _buffer_power():
+	# drone consome 1 power a cada 30 acoes
+	# buffer = acoes para varrer o campo inteiro 3 vezes
+	acoes_por_ciclo = campo.n * campo.n * 3
+	return acoes_por_ciclo // 30 + 50
+
+def reabastece_power():
+	"""Garante buffer minimo de Power antes de tarefas pesadas."""
+	if not pode_produzir(Items.Power):
+		return
+	minimo = _buffer_power()
+	if num_items(Items.Power) < minimo:
+		print("    [power] abaixo do buffer (" + str(num_items(Items.Power)) + "/" + str(minimo) + "), reabastecendo...")
+		girassol.modo_girassol(minimo)
+		print("    [power] ok = " + str(num_items(Items.Power)))
+
 def _cultivo_wood(objetivo):
+	reabastece_power()
 	if num_unlocked(Unlocks.Trees) == 0:
 		policultura.cria_modo_policultura(Items.Wood, Entities.Bush)(objetivo)
 	else:
@@ -51,6 +68,7 @@ def _reabastece_carrot():
 	if num_items(Items.Wood) < buffer:
 		_cultivo_wood(buffer)
 	if num_items(Items.Hay) < buffer:
+		reabastece_power()
 		policultura.cria_modo_policultura(Items.Hay, Entities.Grass)(buffer)
 
 def _cultivo_carrot(objetivo):
@@ -116,6 +134,9 @@ def farma_recurso(recurso, objetivo):
 	if not pode_produzir(recurso):
 		print("    [skip] " + str(recurso) + " nao pode produzir ainda")
 		return
+	# reabastece power antes de qualquer tarefa (exceto o proprio power)
+	if recurso != Items.Power:
+		reabastece_power()
 	print("    [farma] " + str(recurso) + " de " + str(num_items(recurso)) + " ate " + str(objetivo))
 	dados = _recursos[recurso]
 	dados["cultivo"](objetivo)
