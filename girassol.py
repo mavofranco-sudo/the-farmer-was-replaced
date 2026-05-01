@@ -1,31 +1,40 @@
 import campo
 import gerenciador
+import megafazenda
 
-def _planta_campo():
+def _tarefa_plantio():
+	def funcao():
+		def planta_celula():
+			tipo = get_entity_type()
+			if tipo == None:
+				campo.till_ate_soil()
+				plant(Entities.Sunflower)
+			elif tipo != Entities.Sunflower:
+				if can_harvest():
+					harvest()
+				campo.till_ate_soil()
+				plant(Entities.Sunflower)
+			campo._agua()
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, planta_celula)
+	return funcao
+
+def _tarefa_espera():
+	def funcao():
+		def rega_se_precisa():
+			if get_entity_type() == Entities.Sunflower:
+				campo._agua()
+		campo.movimento_bloco(megafazenda.linhas, megafazenda.colunas, rega_se_precisa)
+	return funcao
+
+def _campo_todo_crescido():
 	for x in range(campo.n):
 		for y in range(campo.n):
 			campo.vai_para(x, y)
-			if get_entity_type() == None:
-				till()
-				plant(Entities.Sunflower)
-			elif get_entity_type() != Entities.Sunflower:
-				if can_harvest():
-					harvest()
-				till()
-				plant(Entities.Sunflower)
-
-def _espera_crescer():
-	pronto = False
-	while not pronto:
-		pronto = True
-		for x in range(campo.n):
-			for y in range(campo.n):
-				campo.vai_para(x, y)
-				if get_entity_type() == Entities.Sunflower and not can_harvest():
-					pronto = False
+			if get_entity_type() == Entities.Sunflower and not can_harvest():
+				return False
+	return True
 
 def _colhe_por_ordem():
-	# coleta petalas de cada celula
 	petalas = []
 	for x in range(campo.n):
 		for y in range(campo.n):
@@ -36,7 +45,7 @@ def _colhe_por_ordem():
 					p = 7
 				petalas.append([p, x, y])
 
-	# ordena decrescente por petalas (insertion sort)
+	# insertion sort decrescente
 	for i in range(1, len(petalas)):
 		chave = petalas[i]
 		j = i - 1
@@ -45,16 +54,15 @@ def _colhe_por_ordem():
 			j -= 1
 		petalas[j + 1] = chave
 
-	# colhe na ordem certa (maior primeiro)
+	# colhe maior primeiro para garantir bonus 8x
 	for item in petalas:
-		x = item[1]
-		y = item[2]
-		campo.vai_para(x, y)
+		campo.vai_para(item[1], item[2])
 		if get_entity_type() == Entities.Sunflower and can_harvest():
 			harvest()
 
 def modo_girassol(objetivo):
 	while gerenciador.precisa(Items.Power, objetivo):
-		_planta_campo()
-		_espera_crescer()
+		megafazenda.paraleliza_blocos(_tarefa_plantio())
+		while not _campo_todo_crescido():
+			megafazenda.paraleliza_blocos(_tarefa_espera())
 		_colhe_por_ordem()
