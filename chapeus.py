@@ -1,8 +1,14 @@
+_chapeu_padrao = None
+
 def inicializa():
-	pass
+	global _chapeu_padrao
+	# descobre qual chapeu esta equipado agora e salva como padrao
+	_chapeu_padrao = get_hat()
 
 def usa():
-	pass
+	# reequipa o chapeu padrao (sai do chapeu de dino, colhendo a cauda)
+	if _chapeu_padrao != None:
+		change_hat(_chapeu_padrao)
 
 def usa_e_faz(acao):
 	def funcao():
