@@ -20,7 +20,7 @@ def inicializa():
 		linhas = tam * tam
 	colunas = 1
 
-	print("    [mega] n=" + str(tam) + " drones=" + str(n_drones) + " faixa=" + str(linhas))
+	print("    [mega] n=" + str(tam) + " max_drones=" + str(n_drones) + " faixa=" + str(linhas))
 
 def executa_faixa(indice, nd, acao):
 	tam = get_world_size()
@@ -118,11 +118,95 @@ def _faz_tarefa_15(acao, nd):
 		executa_faixa(15, nd, acao)
 	return chapeus.usa_e_faz(t)
 
+def _faz_tarefa_16(acao, nd):
+	def t():
+		executa_faixa(16, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_17(acao, nd):
+	def t():
+		executa_faixa(17, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_18(acao, nd):
+	def t():
+		executa_faixa(18, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_19(acao, nd):
+	def t():
+		executa_faixa(19, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_20(acao, nd):
+	def t():
+		executa_faixa(20, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_21(acao, nd):
+	def t():
+		executa_faixa(21, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_22(acao, nd):
+	def t():
+		executa_faixa(22, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_23(acao, nd):
+	def t():
+		executa_faixa(23, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_24(acao, nd):
+	def t():
+		executa_faixa(24, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_25(acao, nd):
+	def t():
+		executa_faixa(25, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_26(acao, nd):
+	def t():
+		executa_faixa(26, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_27(acao, nd):
+	def t():
+		executa_faixa(27, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_28(acao, nd):
+	def t():
+		executa_faixa(28, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_29(acao, nd):
+	def t():
+		executa_faixa(29, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_30(acao, nd):
+	def t():
+		executa_faixa(30, nd, acao)
+	return chapeus.usa_e_faz(t)
+
+def _faz_tarefa_31(acao, nd):
+	def t():
+		executa_faixa(31, nd, acao)
+	return chapeus.usa_e_faz(t)
+
 _fabricas = [
-	_faz_tarefa_0, _faz_tarefa_1, _faz_tarefa_2, _faz_tarefa_3,
-	_faz_tarefa_4, _faz_tarefa_5, _faz_tarefa_6, _faz_tarefa_7,
-	_faz_tarefa_8, _faz_tarefa_9, _faz_tarefa_10, _faz_tarefa_11,
-	_faz_tarefa_12, _faz_tarefa_13, _faz_tarefa_14, _faz_tarefa_15
+	_faz_tarefa_0,  _faz_tarefa_1,  _faz_tarefa_2,  _faz_tarefa_3,
+	_faz_tarefa_4,  _faz_tarefa_5,  _faz_tarefa_6,  _faz_tarefa_7,
+	_faz_tarefa_8,  _faz_tarefa_9,  _faz_tarefa_10, _faz_tarefa_11,
+	_faz_tarefa_12, _faz_tarefa_13, _faz_tarefa_14, _faz_tarefa_15,
+	_faz_tarefa_16, _faz_tarefa_17, _faz_tarefa_18, _faz_tarefa_19,
+	_faz_tarefa_20, _faz_tarefa_21, _faz_tarefa_22, _faz_tarefa_23,
+	_faz_tarefa_24, _faz_tarefa_25, _faz_tarefa_26, _faz_tarefa_27,
+	_faz_tarefa_28, _faz_tarefa_29, _faz_tarefa_30, _faz_tarefa_31
 ]
 
 def paraleliza_blocos(acao):
@@ -132,7 +216,10 @@ def paraleliza_blocos(acao):
 		nd = 1
 	total = tam * tam
 	faixa = util.teto_div(total, nd)
-	drones = []
+
+	drones_spawnados = 0
+	drones_local = 0
+	drones_lista = []
 
 	i = 0
 	while i < nd and i < len(_fabricas):
@@ -145,12 +232,16 @@ def paraleliza_blocos(acao):
 		tarefa = _fabricas[i](acao, nd)
 		drone = spawn_drone(tarefa)
 		if drone:
-			drones.append(drone)
+			drones_lista.append(drone)
+			drones_spawnados += 1
 		else:
 			tarefa()
+			drones_local += 1
 		i += 1
 
-	for drone in drones:
+	print("    [mega] spawn=" + str(drones_spawnados) + " local=" + str(drones_local) + " total=" + str(drones_spawnados + drones_local))
+
+	for drone in drones_lista:
 		wait_for(drone)
 
 def paraleliza_linha(acao, por_linha=True):
