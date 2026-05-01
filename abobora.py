@@ -7,15 +7,18 @@ _CUSTO_SEMENTE = 512
 def _trata_celula():
 	tipo = get_entity_type()
 	if tipo == None:
+		# verifica solo: so planta se for Soil, senao faz till primeiro
+		if get_ground_type() != Grounds.Soil:
+			till()
 		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			campo.till_ate_soil()
 			if num_unlocked(Unlocks.Plant):
 				plant(Entities.Pumpkin)
 		campo._agua()
 	elif tipo == Entities.Dead_Pumpkin:
 		harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
 		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			campo.till_ate_soil()
 			if num_unlocked(Unlocks.Plant):
 				plant(Entities.Pumpkin)
 		campo._agua()
