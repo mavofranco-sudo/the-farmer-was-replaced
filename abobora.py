@@ -158,11 +158,16 @@ def modo_abobora(objetivo):
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
 		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
-		# repasses: cada drone verifica sua faixa, trata o que encontrar e marca flag
-		# continua ate todos os drones confirmarem campo 100% pronto
+		# repasses: verifica+trata ate campo estar ok
+		# exige 2 confirmacoes consecutivas antes de colher (evita falso positivo)
 		esperas = 0
-		while not _todas_prontas_paralelo():
-			esperas += 1
+		confirmacoes = 0
+		while confirmacoes < 2:
+			if _todas_prontas_paralelo():
+				confirmacoes += 1
+			else:
+				confirmacoes = 0
+				esperas += 1
 		print("    [abobora] pronto apos " + str(esperas) + " repasses, colhendo...")
 		# fase colheita: todos os drones colhem simultaneamente (garante bonus n²)
 		megafazenda.paraleliza_blocos(_colhe_celula_madura)
