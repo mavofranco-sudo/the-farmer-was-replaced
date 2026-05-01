@@ -1,6 +1,8 @@
 import campo
 import megafazenda
 
+_CUSTO_SEMENTE = 64
+
 def _tarefa_limpa():
 	def funcao():
 		def colhe_se_pronto():
@@ -12,7 +14,7 @@ def _tarefa_limpa():
 def _tarefa_planta():
 	def funcao():
 		def planta_cacto():
-			if num_items(Items.Cactus) == 0:
+			if num_items(Items.Pumpkin) < _CUSTO_SEMENTE:
 				return
 			tipo = get_entity_type()
 			if tipo != None:
@@ -44,7 +46,6 @@ def _conta_cactos_no_campo():
 	return total
 
 def _campo_todo_crescido():
-	# se nao tem cacto nenhum plantado, nao esta crescido
 	tem_algum = False
 	for x in range(campo.n):
 		for y in range(campo.n):
@@ -54,18 +55,6 @@ def _campo_todo_crescido():
 				if not can_harvest():
 					return False
 	return tem_algum
-
-def _planta_primeiro_cacto():
-	# planta pelo menos 1 cacto para ter semente para o resto
-	# o jogo da a semente inicial quando o unlock e feito
-	for x in range(campo.n):
-		for y in range(campo.n):
-			campo.vai_para(x, y)
-			if get_entity_type() == None:
-				campo.till_ate_soil()
-				if num_unlocked(Unlocks.Plant):
-					plant(Entities.Cactus)
-				return
 
 def _measure_safe(direcao=None):
 	if direcao == None:
@@ -110,12 +99,18 @@ def _ordena_campo():
 def tem_cactos_suficientes():
 	return num_items(Items.Cactus) >= campo.n * campo.n
 
-def modo_cacto(objetivo):
-	# garante que tem pelo menos 1 cacto no campo ou no inventario para comecar
-	if num_items(Items.Cactus) == 0 and _conta_cactos_no_campo() == 0:
-		_planta_primeiro_cacto()
+def _aboboras_para_campo_cheio():
+	return campo.n * campo.n * _CUSTO_SEMENTE
 
+def modo_cacto(objetivo):
 	while num_items(Items.Cactus) < objetivo:
+		# garante aboboras suficientes para plantar o campo todo
+		aboboras_necessarias = _aboboras_para_campo_cheio()
+		if num_items(Items.Pumpkin) < aboboras_necessarias:
+			print("    [cacto] precisa de " + str(aboboras_necessarias) + " aboboras, tem " + str(num_items(Items.Pumpkin)))
+			import abobora
+			abobora.modo_abobora(aboboras_necessarias)
+
 		megafazenda.paraleliza_blocos(_tarefa_limpa())
 		megafazenda.paraleliza_blocos(_tarefa_planta())
 		while not _campo_todo_crescido():
