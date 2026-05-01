@@ -1,9 +1,6 @@
 import campo
 import megafazenda
 
-_x_tesouro = 0
-_y_tesouro = 0
-
 def _navega_para_tesouro(x_ini, y_ini):
 	visitados = []
 	visitados.append([x_ini, y_ini])
@@ -57,46 +54,44 @@ def _nivel_mazes():
 	return 2 ** (n - 1)
 
 def _custo_entrada():
-	dimensao = min(megafazenda.linhas, megafazenda.colunas)
-	if dimensao < 1:
-		dimensao = 1
-	return _nivel_mazes() * dimensao
+	# custo baseado no tamanho do campo, nao das faixas
+	tam = get_world_size()
+	return _nivel_mazes() * tam
 
-def tarefa(objetivo):
-	def funcao():
-		custo = _custo_entrada()
-		x_meio = get_pos_x() + megafazenda.colunas // 2
-		y_meio = get_pos_y() + megafazenda.linhas // 2
+def _ciclo_labirinto(objetivo):
+	tam = get_world_size()
+	# labirinto sempre abre no centro do campo
+	x_meio = tam // 2
+	y_meio = tam // 2
+	custo = _custo_entrada()
 
-		while num_items(Items.Gold) < objetivo:
-			campo.vai_para(x_meio, y_meio)
-			campo.cultiva(Entities.Bush)
+	campo.vai_para(x_meio, y_meio)
+	campo.cultiva(Entities.Bush)
 
-			for _ in range(301):
-				if num_items(Items.Weird_Substance) < custo:
-					break
-				use_item(Items.Weird_Substance, custo)
+	for _ in range(301):
+		if num_items(Items.Gold) >= objetivo:
+			break
+		if num_items(Items.Weird_Substance) < custo:
+			break
+		use_item(Items.Weird_Substance, custo)
 
-				resultado = measure()
-				if resultado == None:
-					continue
+		resultado = measure()
+		if resultado == None:
+			continue
 
-				x = get_pos_x()
-				y = get_pos_y()
-				_navega_para_tesouro(x, y)
+		x = get_pos_x()
+		y = get_pos_y()
+		_navega_para_tesouro(x, y)
 
-			harvest()
-
-	return funcao
+	if get_entity_type() == Entities.Treasure:
+		harvest()
+	elif get_entity_type() != None and can_harvest():
+		harvest()
 
 def _garante_weird_substance(objetivo):
-	# calcula quantas WS sao necessarias para todos os drones completarem
 	custo = _custo_entrada()
-	n_drones = megafazenda.n_drones
-	if n_drones < 1:
-		n_drones = 1
-	# cada drone faz ate 301 uses por ciclo, estimar margem generosa
-	necessario = custo * 301 * n_drones * 2
+	# margem para varios ciclos de 301 uses
+	necessario = custo * 301 * 4
 	if num_items(Items.Weird_Substance) < necessario:
 		print("    [labirinto] abastecer Weird_Substance: " + str(necessario))
 		import policultura
@@ -105,6 +100,9 @@ def _garante_weird_substance(objetivo):
 def modo_labirinto(objetivo):
 	while num_items(Items.Gold) < objetivo:
 		_garante_weird_substance(objetivo)
-		megafazenda.paraleliza_blocos(tarefa(objetivo))
+		print("    [labirinto] gold=" + str(num_items(Items.Gold)) + "/" + str(objetivo) +
+			" ws=" + str(num_items(Items.Weird_Substance)) +
+			" custo=" + str(_custo_entrada()))
+		_ciclo_labirinto(objetivo)
 	clear()
 	campo.ara()
