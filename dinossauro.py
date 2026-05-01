@@ -5,6 +5,12 @@ import fila
 
 _x_maca = 0
 _y_maca = 0
+_hat_dino = [None]
+_hat_normal = [None]
+
+def configura_hats(hat_dino, hat_normal):
+	_hat_dino[0] = hat_dino
+	_hat_normal[0] = hat_normal
 
 def _atualiza_maca():
 	global _x_maca
@@ -104,15 +110,16 @@ def _serpentina():
 
 def _tarefa_dino():
 	def funcao():
-		campo.vai_para(get_pos_x(), get_pos_y())
-		change_hat(Hats.Dinosaur_Hat)
+		if _hat_dino[0] != None:
+			change_hat(_hat_dino[0])
 
 		if _atualiza_maca():
 			_vai_para_maca()
 		else:
 			_serpentina()
 
-		change_hat(Hats.Straw_Hat)
+		if _hat_normal[0] != None:
+			change_hat(_hat_normal[0])
 	return funcao
 
 def modo_dinossauro(objetivo):
