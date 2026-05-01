@@ -27,21 +27,53 @@ def producao_segura(valor):
 
 def pode_produzir(recurso):
 	if recurso == Items.Power:
-		return num_unlocked(Unlocks.Sunflowers) > 0
+		n = num_unlocked(Unlocks.Sunflowers)
+		if n <= 0:
+			print("    [debug] Sunflowers=" + str(n))
+			return False
+		return True
 	if recurso == Items.Bone:
-		return num_unlocked(Unlocks.Dinosaurs) > 0
+		n = num_unlocked(Unlocks.Dinosaurs)
+		if n <= 0:
+			print("    [debug] Dinosaurs=" + str(n))
+			return False
+		return True
 	if recurso == Items.Gold:
-		return num_unlocked(Unlocks.Mazes) > 0
+		n = num_unlocked(Unlocks.Mazes)
+		if n <= 0:
+			print("    [debug] Mazes=" + str(n))
+			return False
+		return True
 	if recurso == Items.Cactus:
-		return num_unlocked(Unlocks.Cactus) > 0
+		n = num_unlocked(Unlocks.Cactus)
+		if n <= 0:
+			print("    [debug] Cactus=" + str(n))
+			return False
+		return True
 	if recurso == Items.Pumpkin:
-		return num_unlocked(Unlocks.Pumpkins) > 0
+		n = num_unlocked(Unlocks.Pumpkins)
+		if n <= 0:
+			print("    [debug] Pumpkins=" + str(n))
+			return False
+		return True
 	if recurso == Items.Wood:
-		return num_unlocked(Unlocks.Trees) > 0
+		n = num_unlocked(Unlocks.Trees)
+		if n <= 0:
+			print("    [debug] Trees=" + str(n))
+			return False
+		return True
 	if recurso == Items.Weird_Substance:
-		return num_unlocked(Unlocks.Trees) > 0
+		n = num_unlocked(Unlocks.Trees)
+		if n <= 0:
+			print("    [debug] Trees(ws)=" + str(n))
+			return False
+		return True
 	if recurso == Items.Carrot:
-		return num_unlocked(Unlocks.Carrots) > 0
+		n = num_unlocked(Unlocks.Carrots)
+		if n <= 0:
+			print("    [debug] Carrots=" + str(n))
+			return False
+		return True
 	return True
 
 def inicializa():
