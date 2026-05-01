@@ -40,20 +40,27 @@ def tarefa(objetivo):
 		global _visitados
 		global _x_tesouro
 		global _y_tesouro
-	
+
 		custo = gerenciador.nivel(Unlocks.Mazes) * min(megafazenda.linhas, megafazenda.colunas)
-		x_meio, y_meio = get_pos_x() + megafazenda.colunas // 2, get_pos_y() + megafazenda.linhas // 2
-	
+		x_meio = get_pos_x() + megafazenda.colunas // 2
+		y_meio = get_pos_y() + megafazenda.linhas // 2
+
 		while gerenciador.precisa(Items.Gold, objetivo):
 			campo.vai_para(x_meio, y_meio)
 			campo.cultiva(Entities.Bush)
-	
+
 			for _ in range(301):
-				use_item(Items.Weird_Substance, custo)
-	
+				if num_items(Items.Weird_Substance) >= custo:
+					use_item(Items.Weird_Substance, custo)
+
+				resultado = measure()
+				if resultado == None:
+					continue
+
 				x, y = get_pos_x(), get_pos_y()
 				_visitados = set()
-				_x_tesouro, _y_tesouro = measure()
+				_x_tesouro = resultado[0]
+				_y_tesouro = resultado[1]
 				dfs(x, y)
 			harvest()
 
