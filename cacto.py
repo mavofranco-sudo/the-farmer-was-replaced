@@ -16,7 +16,6 @@ def _planta_cacto():
 			harvest()
 		else:
 			return
-	# garante soil antes de plantar
 	campo.till_ate_soil()
 	if num_unlocked(Unlocks.Plant):
 		plant(Entities.Cactus)
@@ -25,26 +24,20 @@ def _planta_cacto():
 def _rega_celula():
 	campo._agua()
 
-def _conta_cactos_no_campo():
-	total = 0
-	tam = get_world_size()
-	for x in range(tam):
-		for y in range(tam):
-			campo.vai_para(x, y)
-			if get_entity_type() == Entities.Cactus:
-				total += 1
-	return total
-
 def _campo_todo_crescido():
 	tem_algum = False
 	tam = get_world_size()
-	for x in range(tam):
-		for y in range(tam):
+	y = 0
+	while y < tam:
+		x = 0
+		while x < tam:
 			campo.vai_para(x, y)
 			if get_entity_type() == Entities.Cactus:
 				tem_algum = True
 				if not can_harvest():
 					return False
+			x += 1
+		y += 1
 	return tem_algum
 
 def _measure_safe(direcao=None):
@@ -56,39 +49,93 @@ def _measure_safe(direcao=None):
 		return 0
 	return val
 
-def _ordena_coluna(col):
-	trocou = True
-	while trocou:
-		trocou = False
-		tam = get_world_size()
-		for j in range(tam - 1):
-			campo.vai_para(col, j)
-			v_atual = _measure_safe()
-			vizinho_existe = measure(North) != None
-			if vizinho_existe and v_atual > _measure_safe(North):
-				swap(North)
-				trocou = True
+# ordena uma coluna inteira (bubble sort vertical)
+def _cria_ordena_coluna(col, tam):
+	def funcao():
+		trocou = True
+		while trocou:
+			trocou = False
+			j = 0
+			while j < tam - 1:
+				campo.vai_para(col, j)
+				v_atual = _measure_safe()
+				v_norte = measure(North)
+				if v_norte != None and v_atual > v_norte:
+					swap(North)
+					trocou = True
+				j += 1
+	return funcao
 
-def _ordena_linha(lin):
-	trocou = True
-	while trocou:
-		trocou = False
-		tam = get_world_size()
-		for j in range(tam - 1):
-			campo.vai_para(j, lin)
-			v_atual = _measure_safe()
-			vizinho_existe = measure(East) != None
-			if vizinho_existe and v_atual > _measure_safe(East):
-				swap(East)
-				trocou = True
+# ordena uma linha inteira (bubble sort horizontal)
+def _cria_ordena_linha(lin, tam):
+	def funcao():
+		trocou = True
+		while trocou:
+			trocou = False
+			j = 0
+			while j < tam - 1:
+				campo.vai_para(j, lin)
+				v_atual = _measure_safe()
+				v_leste = measure(East)
+				if v_leste != None and v_atual > v_leste:
+					swap(East)
+					trocou = True
+				j += 1
+	return funcao
 
-def _ordena_campo():
+def _ordena_campo_paralelo():
 	tam = get_world_size()
-	for _ in range(tam):
-		for col in range(tam):
-			_ordena_coluna(col)
-		for lin in range(tam):
-			_ordena_linha(lin)
+	nd = max_drones()
+	if nd < 1:
+		nd = 1
+
+	# fase 1: ordena todas as colunas em paralelo
+	drones = []
+	col = 0
+	while col < tam:
+		tarefa = _cria_ordena_coluna(col, tam)
+		drone = spawn_drone(tarefa)
+		if drone:
+			drones.append(drone)
+		else:
+			tarefa()
+		col += 1
+	for d in drones:
+		wait_for(d)
+
+	# fase 2: ordena todas as linhas em paralelo
+	drones = []
+	lin = 0
+	while lin < tam:
+		tarefa = _cria_ordena_linha(lin, tam)
+		drone = spawn_drone(tarefa)
+		if drone:
+			drones.append(drone)
+		else:
+			tarefa()
+		lin += 1
+	for d in drones:
+		wait_for(d)
+
+	# fase 3: reordena colunas (Shearsort: repete tam/2 vezes eh suficiente)
+	passes = tam // 2
+	if passes < 1:
+		passes = 1
+	p = 0
+	while p < passes:
+		drones = []
+		col = 0
+		while col < tam:
+			tarefa = _cria_ordena_coluna(col, tam)
+			drone = spawn_drone(tarefa)
+			if drone:
+				drones.append(drone)
+			else:
+				tarefa()
+			col += 1
+		for d in drones:
+			wait_for(d)
+		p += 1
 
 def _aboboras_para_campo_cheio():
 	tam = get_world_size()
@@ -102,10 +149,24 @@ def modo_cacto(objetivo):
 			import abobora
 			abobora.modo_abobora(aboboras_necessarias)
 
+		t0 = get_time()
 		megafazenda.paraleliza_blocos(_limpa_celula)
 		megafazenda.paraleliza_blocos(_planta_cacto)
+		t_plantio = get_time()
+
 		while not _campo_todo_crescido():
 			megafazenda.paraleliza_blocos(_rega_celula)
-		_ordena_campo()
+		t_crescido = get_time()
+
+		_ordena_campo_paralelo()
+		t_ordenado = get_time()
+
 		campo.vai_para(0, 0)
 		harvest()
+		t_fim = get_time()
+
+		print("    [cacto] plantio=" + str((t_plantio - t0) * 1000 // 1) + "ms" +
+			" crescimento=" + str((t_crescido - t_plantio) * 1000 // 1) + "ms" +
+			" ordenacao=" + str((t_ordenado - t_crescido) * 1000 // 1) + "ms" +
+			" harvest=" + str((t_fim - t_ordenado) * 1000 // 1) + "ms" +
+			" cactos=" + str(num_items(Items.Cactus)))
