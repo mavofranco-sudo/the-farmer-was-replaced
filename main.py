@@ -5,6 +5,7 @@ import gerenciador
 import megafazenda
 import abobora
 import girassol
+import girassol_v2
 import policultura
 
 def inicializa(conquista=None):
@@ -57,11 +58,11 @@ def _prepara_power_farm():
 	minimo = _power_minimo_farm()
 	if num_items(Items.Power) >= minimo:
 		return
-	if not girassol.tem_cenouras_suficientes():
+	if not girassol_v2.tem_cenouras_suficientes():
 		_prepara_cenouras_para_abobora()
-	if girassol.tem_cenouras_suficientes():
+	if girassol_v2.tem_cenouras_suficientes():
 		print("  [farm] reabastecendo power ate " + str(minimo))
-		girassol.modo_girassol(minimo)
+		girassol_v2.modo_girassol(minimo)
 
 def farm_aboboras_infinito(objetivo):
 	print(">>> MODO FARM: " + str(objetivo) + " aboboras")
