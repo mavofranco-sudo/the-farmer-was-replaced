@@ -4,7 +4,6 @@ import policultura
 
 _CUSTO_SEMENTE = 512
 
-# flag mutavel compartilhada entre drones para verificacao paralela
 _tem_problema = [False]
 
 def _trata_celula():
@@ -37,13 +36,18 @@ def _trata_celula():
 				plant(Entities.Pumpkin)
 		campo._agua()
 
-def _colhe_celula_madura():
-	# colhe SOMENTE abobora madura — se achar morta ou vazia replanta e marca problema
+def _verifica_e_trata_celula():
 	tipo = get_entity_type()
-	if tipo == Entities.Pumpkin and can_harvest():
-		harvest()
-	elif tipo == Entities.Dead_Pumpkin:
-		# morreu entre a verificacao e a colheita: replanta e marca para novo ciclo
+	if tipo == None:
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+		_tem_problema[0] = True
+		return
+	if tipo == Entities.Dead_Pumpkin:
 		harvest()
 		if get_ground_type() != Grounds.Soil:
 			till()
@@ -52,22 +56,34 @@ def _colhe_celula_madura():
 				plant(Entities.Pumpkin)
 		campo._agua()
 		_tem_problema[0] = True
-	elif tipo == None:
-		# vazia: replanta e marca problema
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
+		return
+	if tipo == Entities.Pumpkin:
+		if can_harvest():
+			# madura: ok
+			return
+		# crescendo: rega e marca
 		campo._agua()
 		_tem_problema[0] = True
-	elif tipo == Entities.Pumpkin and not can_harvest():
-		# ainda crescendo: rega e marca problema
-		campo._agua()
-		_tem_problema[0] = True
+		return
+	# qualquer outra entidade: limpa e replanta
+	if can_harvest():
+		harvest()
+	if get_ground_type() != Grounds.Soil:
+		till()
+	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+		if num_unlocked(Unlocks.Plant):
+			plant(Entities.Pumpkin)
+	campo._agua()
+	_tem_problema[0] = True
+
+def _so_colhe_madura():
+	# colhe APENAS se for Pumpkin madura — nao toca em nada mais
+	tipo = get_entity_type()
+	if tipo == Entities.Pumpkin:
+		if can_harvest():
+			harvest()
 
 def _replanta_celula():
-	# fase 2: ara e replanta tudo (campo deve estar limpo apos _colhe_celula_madura)
 	tipo = get_entity_type()
 	if tipo != None:
 		if can_harvest():
@@ -78,47 +94,6 @@ def _replanta_celula():
 		if num_unlocked(Unlocks.Plant):
 			plant(Entities.Pumpkin)
 	campo._agua()
-
-def _verifica_e_trata_celula():
-	# cada drone: se achou problema ja resolve e marca flag para novo repasse
-	tipo = get_entity_type()
-	if tipo == None:
-		# celula vazia: ara e replanta
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-		_tem_problema[0] = True
-	elif tipo == Entities.Dead_Pumpkin:
-		# abobora morta: colhe, ara e replanta
-		harvest()
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-		_tem_problema[0] = True
-	elif tipo == Entities.Pumpkin and not can_harvest():
-		# abobora crescendo: rega e marca que ainda nao esta pronta
-		campo._agua()
-		_tem_problema[0] = True
-	elif tipo == Entities.Pumpkin and can_harvest():
-		# abobora madura: ok, nao marca problema
-		pass
-	else:
-		# entidade estranha: limpa e replanta
-		if can_harvest():
-			harvest()
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-		_tem_problema[0] = True
 
 def _limpa_nao_abobora():
 	tipo = get_entity_type()
@@ -131,13 +106,6 @@ def _limpa_nao_abobora():
 
 def _ara_celula():
 	till()
-
-def _todas_prontas_paralelo():
-	# reseta flag e manda todos os drones verificar+tratar em paralelo
-	# se qualquer drone achou e corrigiu um problema, retorna False (precisa repassar)
-	_tem_problema[0] = False
-	megafazenda.paraleliza_blocos(_verifica_e_trata_celula)
-	return not _tem_problema[0]
 
 def _noop():
 	pass
@@ -162,6 +130,13 @@ def _reabastece_insumos():
 			Items.Carrot, Entities.Carrot, _noop
 		)(minimo_cenouras)
 
+def _campo_sem_problemas():
+	# uma passagem completa com todos os drones
+	# retorna True SOMENTE se nenhum drone marcou problema
+	_tem_problema[0] = False
+	megafazenda.paraleliza_blocos(_verifica_e_trata_celula)
+	return not _tem_problema[0]
+
 def modo_abobora(objetivo):
 	campo.inicializa()
 	megafazenda.inicializa()
@@ -176,23 +151,21 @@ def modo_abobora(objetivo):
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
 		_reabastece_insumos()
 		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
-		# repasses: verifica+trata ate campo estar ok
-		# exige 2 confirmacoes consecutivas antes de colher (evita falso positivo)
+
+		# loop: repassa ate 3 passagens limpas consecutivas sem nenhum problema
 		esperas = 0
-		confirmacoes = 0
-		while confirmacoes < 2:
-			if _todas_prontas_paralelo():
-				confirmacoes += 1
+		limpas = 0
+		while limpas < 3:
+			if _campo_sem_problemas():
+				limpas += 1
 			else:
-				confirmacoes = 0
+				limpas = 0
 				esperas += 1
-		print("    [abobora] pronto apos " + str(esperas) + " repasses, colhendo...")
-		# fase colheita: reseta flag e colhe — se achar morta/vazia replanta e marca flag
-		_tem_problema[0] = False
-		megafazenda.paraleliza_blocos(_colhe_celula_madura)
-		if _tem_problema[0]:
-			# teve abobora que morreu na hora da colheita: volta pro loop de verificacao
-			print("    [abobora] problema na colheita, voltando ao loop...")
-			continue
-		# campo ok: replanta para proximo ciclo
+
+		print("    [abobora] campo ok apos " + str(esperas) + " repasses, colhendo...")
+
+		# colheita: SO colhe Pumpkin madura, nao toca em nada mais
+		megafazenda.paraleliza_blocos(_so_colhe_madura)
+
+		# replanta para proximo ciclo
 		megafazenda.paraleliza_blocos(_replanta_celula)
