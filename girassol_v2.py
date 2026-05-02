@@ -39,36 +39,46 @@ def _constroi_resultados(resultados):
 				_girassois[i].add(par)
 			i += 1
 
-# cria funcao de colheita com a lista de celulas embutida na closure
-def _cria_colheita_faixa(faixa):
+# colhe todas as celulas maduras numa linha y, ordenando por petalas desc
+def _cria_colheita_linha(y, celulas):
+	# celulas = lista de [p, x] para essa linha
 	def funcao():
-		# ordena por petalas decrescente (insertion sort)
+		# ordena por petalas desc (insertion sort)
 		i = 1
-		while i < len(faixa):
-			chave = faixa[i]
+		while i < len(celulas):
+			chave = celulas[i]
 			j = i - 1
-			while j >= 0 and faixa[j][0] < chave[0]:
-				faixa[j + 1] = faixa[j]
+			while j >= 0 and celulas[j][0] < chave[0]:
+				celulas[j + 1] = celulas[j]
 				j -= 1
-			faixa[j + 1] = chave
+			celulas[j + 1] = chave
 			i += 1
-		for item in faixa:
-			campo.vai_para(item[1], item[2])
+		for item in celulas:
+			campo.vai_para(item[1], y)
 			if get_entity_type() == Entities.Sunflower:
 				if can_harvest():
 					harvest()
 	return chapeus.usa_e_faz(funcao)
 
 def _colhe_paralelo():
-	# monta lista com todas as celulas maduras: [p, x, y]
-	todas = []
+	tam = get_world_size()
+
+	# agrupa celulas maduras por linha y
+	por_linha = {}
 	p = 15
 	while p >= 7:
 		for par in _girassois[p]:
-			todas.append([p, par[0], par[1]])
+			x = par[0]
+			y = par[1]
+			if y not in por_linha:
+				por_linha[y] = []
+			por_linha[y].append([p, x])
 		p -= 1
 
-	total = len(todas)
+	total = 0
+	for y in por_linha:
+		total += len(por_linha[y])
+
 	if total == 0:
 		return 0
 
@@ -76,29 +86,58 @@ def _colhe_paralelo():
 	if nd < 1:
 		nd = 1
 
-	# divide em nd faixas e cria closures com os dados embutidos
-	tam_faixa = total // nd
-	if tam_faixa < 1:
-		tam_faixa = 1
+	# lista de linhas com celulas
+	linhas = []
+	for y in por_linha:
+		linhas.append(y)
+
+	# distribui linhas em nd grupos
+	grupos = {}
+	i = 0
+	while i < nd:
+		grupos[i] = []
+		i += 1
+
+	i = 0
+	for y in linhas:
+		grupos[i % nd].append(y)
+		i += 1
+
+	def _cria_colheita_grupo(grupo_linhas, dados_linhas):
+		def funcao():
+			for y in grupo_linhas:
+				celulas = dados_linhas[y]
+				# ordena por petalas desc
+				i = 1
+				while i < len(celulas):
+					chave = celulas[i]
+					j = i - 1
+					while j >= 0 and celulas[j][0] < chave[0]:
+						celulas[j + 1] = celulas[j]
+						j -= 1
+					celulas[j + 1] = chave
+					i += 1
+				for item in celulas:
+					campo.vai_para(item[1], y)
+					if get_entity_type() == Entities.Sunflower:
+						if can_harvest():
+							harvest()
+		return chapeus.usa_e_faz(funcao)
 
 	drones = []
 	i = 0
 	while i < nd:
-		inicio = i * tam_faixa
-		if i == nd - 1:
-			fim = total
-		else:
-			fim = inicio + tam_faixa
-		if inicio >= total:
-			i += 1
-			continue
-		faixa = todas[inicio:fim]
-		tarefa = _cria_colheita_faixa(faixa)
-		drone = spawn_drone(tarefa)
-		if drone:
-			drones.append(drone)
-		else:
-			tarefa()
+		if len(grupos[i]) > 0:
+			# posiciona drone no primeiro x,y do grupo para spawn eficiente
+			primeira_linha = grupos[i][0]
+			primeiro_x = por_linha[primeira_linha][0][1]
+			campo.vai_para(primeiro_x, primeira_linha)
+			tarefa = _cria_colheita_grupo(grupos[i], por_linha)
+			drone = spawn_drone(tarefa)
+			if drone:
+				drones.append(drone)
+			else:
+				tarefa()
 		i += 1
 
 	for d in drones:
