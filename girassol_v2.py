@@ -39,15 +39,10 @@ def _constroi_resultados(resultados):
 				_girassois[i].add(par)
 			i += 1
 
-# cada drone recebe sua faixa de celulas e colhe na ordem certa (15->7)
-# a lista global _faixas_colheita[drone_idx] = lista ordenada de [p, x, y]
-_faixas_colheita = {}
-
-def _tarefa_colheita_faixa(idx):
+# cria funcao de colheita com a lista de celulas embutida na closure
+def _cria_colheita_faixa(faixa):
 	def funcao():
-		faixa = _faixas_colheita[idx]
-		# ordena por petalas decrescente dentro da faixa
-		# insertion sort (sem sorted/lambda)
+		# ordena por petalas decrescente (insertion sort)
 		i = 1
 		while i < len(faixa):
 			chave = faixa[i]
@@ -65,7 +60,7 @@ def _tarefa_colheita_faixa(idx):
 	return chapeus.usa_e_faz(funcao)
 
 def _colhe_paralelo():
-	# monta lista global com todas as celulas maduras: [p, x, y]
+	# monta lista com todas as celulas maduras: [p, x, y]
 	todas = []
 	p = 15
 	while p >= 7:
@@ -81,34 +76,29 @@ def _colhe_paralelo():
 	if nd < 1:
 		nd = 1
 
-	# divide em nd faixas
-	tam = total // nd
-	if tam < 1:
-		tam = 1
-
-	i = 0
-	while i < nd:
-		inicio = i * tam
-		fim = inicio + tam
-		if i == nd - 1:
-			fim = total
-		if inicio < total:
-			_faixas_colheita[i] = todas[inicio:fim]
-		else:
-			_faixas_colheita[i] = []
-		i += 1
+	# divide em nd faixas e cria closures com os dados embutidos
+	tam_faixa = total // nd
+	if tam_faixa < 1:
+		tam_faixa = 1
 
 	drones = []
 	i = 0
 	while i < nd:
-		if len(_faixas_colheita[i]) > 0:
-			primeiro = _faixas_colheita[i][0]
-			campo.vai_para(primeiro[1], primeiro[2])
-			drone = spawn_drone(_tarefa_colheita_faixa(i))
-			if drone:
-				drones.append(drone)
-			else:
-				_tarefa_colheita_faixa(i)()
+		inicio = i * tam_faixa
+		if i == nd - 1:
+			fim = total
+		else:
+			fim = inicio + tam_faixa
+		if inicio >= total:
+			i += 1
+			continue
+		faixa = todas[inicio:fim]
+		tarefa = _cria_colheita_faixa(faixa)
+		drone = spawn_drone(tarefa)
+		if drone:
+			drones.append(drone)
+		else:
+			tarefa()
 		i += 1
 
 	for d in drones:
@@ -131,7 +121,7 @@ def modo_girassol(objetivo):
 
 	while num_items(Items.Power) < objetivo:
 		if not tem_cenouras_suficientes():
-			print("    [girassol] sem cenouras (power=" + str(num_items(Items.Power)) + " obj=" + str(objetivo) + ")")
+			print("    [girassol] sem cenouras (power=" + str(num_items(Items.Power) // 1) + " obj=" + str(objetivo // 1) + ")")
 			return
 
 		t0 = get_time()
@@ -141,7 +131,6 @@ def modo_girassol(objetivo):
 
 		total = _colhe_paralelo()
 
-		# limpa para proximo ciclo
 		p = 15
 		while p >= 7:
 			_girassois[p] = set()
