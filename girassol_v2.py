@@ -58,6 +58,10 @@ def _planta_celula():
 
 def _verifica_crescimento():
 	tipo = get_entity_type()
+	# celula vazia ou girassol ainda crescendo = nao pronto
+	if tipo == None:
+		_tem_crescendo[0] = True
+		return
 	if tipo == Entities.Sunflower:
 		if not can_harvest():
 			campo._agua()
@@ -173,7 +177,9 @@ def _colhe_por_petalas():
 	lista = _petalas_lista[0]
 	total = len(lista)
 	if total == 0:
-		print("    [girassol] nenhum girassol para colher")
+		# nao encontrou nenhum maduro - verifica se ha girassois no campo
+		tam = get_world_size()
+		print("    [girassol] aviso: 0 maduros (n=" + str(tam) + " power=" + str(num_items(Items.Power)) + ")")
 		return 0
 
 	# 2) ordena decrescente por petalas
@@ -249,13 +255,18 @@ def um_ciclo_girassol():
 
 	por_min = 0
 	if dur_total > 0:
-		por_min = int(colhidos * 60 / dur_total)
+		por_min = (colhidos * 60) // dur_total
+
+	ms_total = dur_total * 1000
+	ms_plantio = dur_plantio * 1000
+	ms_cresc = dur_crescimento * 1000
+	ms_colh = dur_colheita * 1000
 
 	print("    [girassol] colhidos=" + str(colhidos) +
-		" total=" + str(int(dur_total * 1000)) + "ms" +
-		" plantio=" + str(int(dur_plantio * 1000)) + "ms" +
-		" crescimento=" + str(int(dur_crescimento * 1000)) + "ms" +
-		" colheita=" + str(int(dur_colheita * 1000)) + "ms" +
+		" total=" + str(ms_total // 1) + "ms" +
+		" plantio=" + str(ms_plantio // 1) + "ms" +
+		" crescimento=" + str(ms_cresc // 1) + "ms" +
+		" colheita=" + str(ms_colh // 1) + "ms" +
 		" ritmo=" + str(por_min) + "/min")
 
 	return True
