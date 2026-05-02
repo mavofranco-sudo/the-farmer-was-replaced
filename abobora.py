@@ -38,15 +38,33 @@ def _trata_celula():
 		campo._agua()
 
 def _colhe_celula_madura():
-	# fase 1: colhe APENAS aboboras maduras (garante bonus de colheita simultanea)
+	# colhe SOMENTE abobora madura — se achar morta ou vazia replanta e marca problema
 	tipo = get_entity_type()
 	if tipo == Entities.Pumpkin and can_harvest():
 		harvest()
 	elif tipo == Entities.Dead_Pumpkin:
+		# morreu entre a verificacao e a colheita: replanta e marca para novo ciclo
 		harvest()
-	elif tipo != None and tipo != Entities.Pumpkin:
-		if can_harvest():
-			harvest()
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+		_tem_problema[0] = True
+	elif tipo == None:
+		# vazia: replanta e marca problema
+		if get_ground_type() != Grounds.Soil:
+			till()
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
+		campo._agua()
+		_tem_problema[0] = True
+	elif tipo == Entities.Pumpkin and not can_harvest():
+		# ainda crescendo: rega e marca problema
+		campo._agua()
+		_tem_problema[0] = True
 
 def _replanta_celula():
 	# fase 2: ara e replanta tudo (campo deve estar limpo apos _colhe_celula_madura)
@@ -169,7 +187,12 @@ def modo_abobora(objetivo):
 				confirmacoes = 0
 				esperas += 1
 		print("    [abobora] pronto apos " + str(esperas) + " repasses, colhendo...")
-		# fase colheita: todos os drones colhem simultaneamente (garante bonus n²)
+		# fase colheita: reseta flag e colhe — se achar morta/vazia replanta e marca flag
+		_tem_problema[0] = False
 		megafazenda.paraleliza_blocos(_colhe_celula_madura)
-		# fase replantio: ara e replanta (inclusive celulas que ficaram vazias)
+		if _tem_problema[0]:
+			# teve abobora que morreu na hora da colheita: volta pro loop de verificacao
+			print("    [abobora] problema na colheita, voltando ao loop...")
+			continue
+		# campo ok: replanta para proximo ciclo
 		megafazenda.paraleliza_blocos(_replanta_celula)
