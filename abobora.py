@@ -191,33 +191,19 @@ def modo_abobora(objetivo):
 
 		# fase 1: trata problemas estruturais ate campo estar limpo (sem mortas/vazias)
 		esperas_estrutura = 0
-		limpas = 0
-		while limpas < 3:
-			if _campo_sem_problemas():
-				limpas += 1
-			else:
-				limpas = 0
-				esperas_estrutura += 1
+		while not _campo_sem_problemas():
+			esperas_estrutura += 1
 		print("    [abobora] sem mortas apos " + str(esperas_estrutura) + " repasses")
 
 		# fase 2: aguarda todas maduras (so rega, nao replanta nada)
 		esperas_maturidade = 0
-		maduras = 0
-		while maduras < 3:
-			if _campo_todo_maduro():
-				maduras += 1
-			else:
-				maduras = 0
-				esperas_maturidade += 1
-				# se apareceu problema estrutural durante espera, volta fase 1
-				if _tem_problema[0]:
-					print("    [abobora] problema durante espera, voltando fase 1...")
-					limpas = 0
-					while limpas < 3:
-						if _campo_sem_problemas():
-							limpas += 1
-						else:
-							limpas = 0
+		while not _campo_todo_maduro():
+			esperas_maturidade += 1
+			# se apareceu problema estrutural durante espera, volta fase 1
+			if _tem_problema[0]:
+				print("    [abobora] problema durante espera, voltando fase 1...")
+				while not _campo_sem_problemas():
+					pass
 
 		print("    [abobora] todas maduras apos " + str(esperas_maturidade) + " esperas, colhendo...")
 
