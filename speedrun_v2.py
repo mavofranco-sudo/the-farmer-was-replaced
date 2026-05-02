@@ -8,6 +8,22 @@ currentDirection = North
 l = -1
 substance = -1
 
+def _move_to(x, y):
+	cx = get_pos_x()
+	cy = get_pos_y()
+	while cx < x:
+		move(East)
+		cx += 1
+	while cx > x:
+		move(West)
+		cx -= 1
+	while cy < y:
+		move(North)
+		cy += 1
+	while cy > y:
+		move(South)
+		cy -= 1
+
 def slowest_automation():
 	s = get_time()
 	quick_print("Slowest Reset")
@@ -105,7 +121,7 @@ def _cria_faixa_sow(x_ini, x_fim, tam, to_harvest, water, entity):
 		y = 0
 		while y < tam:
 			for x in cols:
-				move_to(x, y)
+				_move_to(x, y)
 				_sow(to_harvest, water, entity)
 			y += 1
 	return funcao
@@ -184,7 +200,7 @@ def farm_trees():
 			while y < tam:
 				for x in cols:
 					if (x + y) % 2 == 0:
-						move_to(x, y)
+						_move_to(x, y)
 						_sow(True, True, Entities.Tree)
 				y += 1
 		return funcao
@@ -220,7 +236,7 @@ def farm_pumpkins(num):
 		while y < tam:
 			x = 0
 			while x < tam:
-				move_to(x, y)
+				_move_to(x, y)
 				if num_items(Items.Fertilizer) > 0:
 					use_item(Items.Fertilizer)
 				x += 1
@@ -231,7 +247,7 @@ def farm_cactus(num):
 	_paraleliza_sow(True, True, Entities.Cactus)
 	# ordena em paralelo para bonus n²
 	_ordena_cactus_paralelo()
-	move_to(0, 0)
+	_move_to(0, 0)
 	harvest()
 
 def _cria_ordena_coluna(col, tam):
@@ -241,7 +257,7 @@ def _cria_ordena_coluna(col, tam):
 			trocou = False
 			j = 0
 			while j < tam - 1:
-				move_to(col, j)
+				_move_to(col, j)
 				v_norte = measure(North)
 				if v_norte != None and measure() > v_norte:
 					swap(North)
@@ -256,7 +272,7 @@ def _cria_ordena_linha(lin, tam):
 			trocou = False
 			j = 0
 			while j < tam - 1:
-				move_to(j, lin)
+				_move_to(j, lin)
 				v_leste = measure(East)
 				if v_leste != None and measure() > v_leste:
 					swap(East)
