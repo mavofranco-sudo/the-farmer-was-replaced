@@ -117,7 +117,7 @@ def farm_power_infinito():
 			" gerado=" + str(power_depois - power_antes) +
 			" ritmo=" + str(ritmo) + "/min")
 
-		if ciclo >= 10 and ritmo >= 12000:
+		if ritmo >= 12000:
 			print(">>> OBJETIVO ATINGIDO: " + str(ritmo) + "/min (meta: 12000/min)")
 			return
 
@@ -203,4 +203,10 @@ farm_aboboras_infinito(100000000)
 
 # farm de power apos aboboras
 farm_power_infinito()
+
+# farm de cactus apos power
+import cacto
+n = get_world_size()
+cacto.modo_cacto(n * n * n * n)
+
 
