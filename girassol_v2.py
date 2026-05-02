@@ -2,7 +2,6 @@ import campo
 import megafazenda
 
 _tem_crescendo = [False]
-_petalas_lista = [[]]
 
 # fatias para colheita paralela dentro de cada grupo de petalas
 _f0  = [[]]
@@ -72,17 +71,6 @@ def _campo_pronto():
 	_tem_crescendo[0] = False
 	megafazenda.paraleliza_blocos(_verifica_crescimento)
 	return not _tem_crescendo[0]
-
-def _coleta_petalas():
-	tipo = get_entity_type()
-	if tipo == Entities.Sunflower:
-		if can_harvest():
-			p = measure()
-			if p == None:
-				p = 7
-			x = get_pos_x()
-			y = get_pos_y()
-			_petalas_lista[0].append([p, x, y])
 
 def _colhe_lista(lst):
 	for item in lst:
@@ -159,7 +147,6 @@ def _c31():
 _funcs_c = [_c0,_c1,_c2,_c3,_c4,_c5,_c6,_c7,_c8,_c9,_c10,_c11,_c12,_c13,_c14,_c15,_c16,_c17,_c18,_c19,_c20,_c21,_c22,_c23,_c24,_c25,_c26,_c27,_c28,_c29,_c30,_c31]
 
 def _colhe_grupo_paralelo(grupo):
-	# divide o grupo em fatias e colhe com todos os drones em paralelo
 	nd = max_drones()
 	if nd < 1:
 		nd = 1
@@ -196,26 +183,37 @@ def _colhe_grupo_paralelo(grupo):
 		wait_for(d)
 
 def _colhe_por_petalas():
-	# coleta medicoes em paralelo
-	_petalas_lista[0] = []
-	megafazenda.paraleliza_blocos(_coleta_petalas)
-	lista = _petalas_lista[0]
-	total = len(lista)
-	if total == 0:
-		tam = get_world_size()
-		print("    [girassol] aviso: 0 maduros (n=" + str(tam) + ")")
-		return 0
-	# agrupa por numero de petalas (15 a 7)
-	# colhe cada grupo do maior para o menor - preserva bonus 8x
-	p = 15
-	while p >= 7:
-		grupo = []
-		for item in lista:
-			if item[0] == p:
-				grupo.append(item)
-		if len(grupo) > 0:
-			_colhe_grupo_paralelo(grupo)
-		p -= 1
+	# coleta em serie pelo drone principal (drones filhos nao compartilham listas)
+	tam = get_world_size()
+	grupos = [[], [], [], [], [], [], [], [], []]
+	# grupos[0]=p7, grupos[1]=p8, ..., grupos[8]=p15
+	x = 0
+	while x < tam:
+		y = 0
+		while y < tam:
+			campo.vai_para(x, y)
+			tipo = get_entity_type()
+			if tipo == Entities.Sunflower:
+				if can_harvest():
+					p = measure()
+					if p == None:
+						p = 7
+					idx = p - 7
+					if idx < 0:
+						idx = 0
+					if idx > 8:
+						idx = 8
+					grupos[idx].append([x, y])
+			y += 1
+		x += 1
+	total = 0
+	# colhe do maior (idx=8, p=15) para o menor (idx=0, p=7)
+	idx = 8
+	while idx >= 0:
+		if len(grupos[idx]) > 0:
+			_colhe_grupo_paralelo(grupos[idx])
+			total += len(grupos[idx])
+		idx -= 1
 	return total
 
 def tem_cenouras_suficientes():
