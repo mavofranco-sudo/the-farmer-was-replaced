@@ -2,7 +2,7 @@ import abobora
 import cacto
 import campo
 import dinossauro
-import girassol
+import girassol_v2 as girassol
 import labirinto
 import megafazenda
 import policultura
@@ -178,6 +178,7 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
+
 
 
 
