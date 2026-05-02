@@ -2,7 +2,8 @@ import abobora
 import cacto
 import campo
 import dinossauro
-import girassol_v2 as girassol
+import girassol
+import girassol_v2
 import labirinto
 import megafazenda
 import policultura
@@ -60,7 +61,7 @@ def _buffer_power():
 def reabastece_power():
 	if not pode_produzir(Items.Power):
 		return
-	if not girassol.tem_cenouras_suficientes():
+	if not girassol_v2.tem_cenouras_suficientes():
 		print("    [power] sem cenouras suficientes, pulando reabastecimento")
 		return
 	# power zerado: recarga emergencial imediata
@@ -70,14 +71,14 @@ def reabastece_power():
 		if minimo_urgente < 100:
 			minimo_urgente = 100
 		print("    [power] ZERO! emergencia ate " + str(minimo_urgente))
-		girassol.modo_girassol(minimo_urgente)
+		girassol_v2.modo_girassol(minimo_urgente)
 		print("    [power] ok = " + str(num_items(Items.Power)))
 		return
 	minimo = _buffer_power()
 	if num_items(Items.Power) >= minimo:
 		return
 	print("    [power] abaixo do buffer (" + str(num_items(Items.Power)) + "/" + str(minimo) + "), reabastecendo...")
-	girassol.modo_girassol(minimo)
+	girassol_v2.modo_girassol(minimo)
 	print("    [power] ok = " + str(num_items(Items.Power)))
 
 def _cultivo_wood(objetivo):
@@ -132,7 +133,7 @@ def inicializa():
 			"producao_ciclo": producao_segura(nivel(Unlocks.Pumpkins) * campo.n * campo.n * min(campo.n, 6))
 		},
 		Items.Power: {
-			"cultivo": girassol.modo_girassol,
+			"cultivo": girassol_v2.modo_girassol,
 			"producao_ciclo": producao_segura((nivel(Unlocks.Sunflowers) * 5 * ((campo.n * campo.n) - 9) + 9) - (campo.n * campo.n))
 		},
 		Items.Cactus: {
@@ -178,6 +179,7 @@ def farma_custo(custo):
 		if recurso not in custo:
 			continue
 		farma_recurso(recurso, custo[recurso])
+
 
 
 
