@@ -72,19 +72,12 @@ def _verifica_e_trata_celula():
 	_planta_aqui()
 	_tem_problema[0] = True
 
-def _colhe_e_replanta_imediato():
-	# colhe a abobora madura e ja replanta na mesma celula
+def _colhe_celula_bonus():
+	# colhe SOMENTE abobora madura para garantir bonus n² (colheita simultanea)
 	tipo = get_entity_type()
 	if tipo == Entities.Pumpkin:
 		if can_harvest():
 			harvest()
-			# celula agora vazia: replanta imediatamente
-			if get_ground_type() != Grounds.Soil:
-				till()
-			if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-				if num_unlocked(Unlocks.Plant):
-					plant(Entities.Pumpkin)
-			campo._agua()
 
 def _replanta_celula():
 	tipo = get_entity_type()
@@ -228,5 +221,7 @@ def modo_abobora(objetivo):
 
 		print("    [abobora] todas maduras apos " + str(esperas_maturidade) + " esperas, colhendo...")
 
-		# colhe e replanta na mesma passagem: cada drone colhe e ja replanta a celula
-		megafazenda.paraleliza_blocos(_colhe_e_replanta_imediato)
+		# passo 1: todos os drones colhem simultaneamente (bonus n²)
+		megafazenda.paraleliza_blocos(_colhe_celula_bonus)
+		# passo 2: todos os drones replantam o campo inteiro em paralelo
+		megafazenda.paraleliza_blocos(_replanta_celula)
