@@ -72,12 +72,19 @@ def _verifica_e_trata_celula():
 	_planta_aqui()
 	_tem_problema[0] = True
 
-def _so_colhe_madura():
-	# colhe APENAS se for Pumpkin madura — nao toca em nada mais
+def _colhe_e_replanta_imediato():
+	# colhe a abobora madura e ja replanta na mesma celula
 	tipo = get_entity_type()
 	if tipo == Entities.Pumpkin:
 		if can_harvest():
 			harvest()
+			# celula agora vazia: replanta imediatamente
+			if get_ground_type() != Grounds.Soil:
+				till()
+			if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+				if num_unlocked(Unlocks.Plant):
+					plant(Entities.Pumpkin)
+			campo._agua()
 
 def _replanta_celula():
 	tipo = get_entity_type()
@@ -221,8 +228,5 @@ def modo_abobora(objetivo):
 
 		print("    [abobora] todas maduras apos " + str(esperas_maturidade) + " esperas, colhendo...")
 
-		# colheita: SO colhe Pumpkin madura, nao toca em nada mais
-		megafazenda.paraleliza_blocos(_so_colhe_madura)
-
-		# replanta para proximo ciclo
-		megafazenda.paraleliza_blocos(_replanta_celula)
+		# colhe e replanta na mesma passagem: cada drone colhe e ja replanta a celula
+		megafazenda.paraleliza_blocos(_colhe_e_replanta_imediato)
