@@ -199,16 +199,34 @@ def um_ciclo_girassol():
 	if not tem_cenouras_suficientes():
 		return False
 
+	t0 = get_time()
+
 	megafazenda.paraleliza_blocos(_planta_celula)
+	t_plantio = get_time()
 
 	regas = 0
 	while not _campo_pronto():
 		regas += 1
+	t_crescido = get_time()
 
 	colhidos = _colhe_por_petalas()
+	t_fim = get_time()
+
+	dur_total = t_fim - t0
+	dur_plantio = t_plantio - t0
+	dur_crescimento = t_crescido - t_plantio
+	dur_colheita = t_fim - t_crescido
+
+	por_min = 0
+	if dur_total > 0:
+		por_min = int(colhidos * 60 / dur_total)
 
 	print("    [girassol] colhidos=" + str(colhidos) +
-		" regas=" + str(regas))
+		" total=" + str(int(dur_total * 1000)) + "ms" +
+		" plantio=" + str(int(dur_plantio * 1000)) + "ms" +
+		" crescimento=" + str(int(dur_crescimento * 1000)) + "ms" +
+		" colheita=" + str(int(dur_colheita * 1000)) + "ms" +
+		" ritmo=" + str(por_min) + "/min")
 
 	return True
 
