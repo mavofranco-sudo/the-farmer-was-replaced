@@ -204,9 +204,33 @@ farm_aboboras_infinito(100000000)
 # farm de power apos aboboras
 farm_power_infinito()
 
-# farm de cactus apos power
+# farm de cactus: 3 ciclos completos
 import cacto
-n = get_world_size()
-cacto.modo_cacto(n * n * n * n)
+
+def _farm_cactus_ciclos(num_ciclos):
+	ciclo = 0
+	while ciclo < num_ciclos:
+		ciclo += 1
+		n = get_world_size()
+		print(">>> CICLO CACTUS " + str(ciclo) + "/" + str(num_ciclos))
+
+		# garante aboboras para 1 campo cheio
+		aboboras_necessarias = n * n * 64
+		if num_items(Items.Pumpkin) < aboboras_necessarias:
+			print("  [cactus] farmando aboboras: " + str(aboboras_necessarias))
+			farm_aboboras_infinito(aboboras_necessarias)
+
+		# garante power antes de comecar
+		if girassol_v2.tem_cenouras_suficientes():
+			power_min = n * n * 10 + 500
+			if num_items(Items.Power) < power_min:
+				print("  [cactus] reabastecendo power ate " + str(power_min))
+				girassol_v2.modo_girassol(power_min)
+
+		# 1 ciclo completo de cactus
+		cacto.modo_cacto(num_items(Items.Cactus) + n * n * n * n)
+		print(">>> CACTUS ciclo=" + str(ciclo) + " total=" + str(num_items(Items.Cactus)))
+
+_farm_cactus_ciclos(3)
 
 
