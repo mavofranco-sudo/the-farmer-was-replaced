@@ -38,22 +38,59 @@ def _constroi_resultados(resultados):
 				_girassois[i].add(par)
 			i += 1
 
-def _colhe_uma_passagem():
-	# monta lista ordenada 15->7 e percorre 1 unica vez
-	ordenadas = []
+# colhe uma lista de (x,y) passada via closure
+def _cria_colheita_lista(celulas):
+	def funcao():
+		for par in celulas:
+			campo.vai_para(par[0], par[1])
+			if get_entity_type() == Entities.Sunflower:
+				if can_harvest():
+					harvest()
+	return funcao
+
+def _colhe_wave_paralelo(celulas):
+	# divide as celulas entre nd drones e espera todos terminarem
+	if len(celulas) == 0:
+		return
+	nd = max_drones()
+	if nd < 1:
+		nd = 1
+	tam = len(celulas) // nd
+	if tam < 1:
+		tam = 1
+	drones = []
+	i = 0
+	while i < nd:
+		inicio = i * tam
+		if i == nd - 1:
+			fim = len(celulas)
+		else:
+			fim = inicio + tam
+		if inicio >= len(celulas):
+			i += 1
+			continue
+		fatia = celulas[inicio:fim]
+		tarefa = _cria_colheita_lista(fatia)
+		drone = spawn_drone(tarefa)
+		if drone:
+			drones.append(drone)
+		else:
+			tarefa()
+		i += 1
+	for d in drones:
+		wait_for(d)
+
+def _colhe_por_waves():
+	# colhe nivel por nivel (15->7), esperando todos os drones de cada nivel
+	# isso garante o bonus 8x: nenhum p=14 e colhido antes de todos p=15
+	total = 0
 	p = 15
 	while p >= 7:
-		for par in _girassois[p]:
-			ordenadas.append((par[0], par[1]))
+		celulas = list(_girassois[p])
+		if len(celulas) > 0:
+			_colhe_wave_paralelo(celulas)
+			total += len(celulas)
 		p -= 1
-
-	total = 0
-	for par in ordenadas:
-		campo.vai_para(par[0], par[1])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-				total += 1
 	return total
 
 def tem_cenouras_suficientes():
@@ -78,7 +115,7 @@ def modo_girassol(objetivo):
 		_constroi_resultados(resultados)
 		t_plantio = get_time()
 
-		total = _colhe_uma_passagem()
+		total = _colhe_por_waves()
 
 		p = 15
 		while p >= 7:
