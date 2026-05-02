@@ -37,12 +37,15 @@ def _trata_celula():
 		campo._agua()
 
 def _planta_aqui():
-	# helper: ara e planta na celula atual
-	if get_ground_type() != Grounds.Soil:
+	# helper: ara ate solo ser Soil (pode precisar de 2 tills: Grassland->Dirt->Soil)
+	tentativas = 0
+	while get_ground_type() != Grounds.Soil and tentativas < 3:
 		till()
-	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-		if num_unlocked(Unlocks.Plant):
-			plant(Entities.Pumpkin)
+		tentativas += 1
+	if get_ground_type() == Grounds.Soil:
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
 	campo._agua()
 
 def _verifica_e_trata_celula():
@@ -84,11 +87,15 @@ def _replanta_celula():
 	if tipo != None:
 		if can_harvest():
 			harvest()
-	if get_ground_type() != Grounds.Soil:
+	# ara ate solo ser Soil (Grassland->Dirt->Soil pode precisar de 2 tills)
+	tentativas = 0
+	while get_ground_type() != Grounds.Soil and tentativas < 3:
 		till()
-	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-		if num_unlocked(Unlocks.Plant):
-			plant(Entities.Pumpkin)
+		tentativas += 1
+	if get_ground_type() == Grounds.Soil:
+		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+			if num_unlocked(Unlocks.Plant):
+				plant(Entities.Pumpkin)
 	campo._agua()
 
 def _limpa_nao_abobora():
