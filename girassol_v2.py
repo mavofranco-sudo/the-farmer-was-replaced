@@ -1,5 +1,4 @@
 import campo
-import chapeus
 import megafazenda
 
 _girassois = {}
@@ -39,18 +38,22 @@ def _constroi_resultados(resultados):
 				_girassois[i].add(par)
 			i += 1
 
-def _colhe_sequencial():
-	# colhe localmente (sem spawn) em ordem 15->7 para garantir bônus
-	total = 0
+def _colhe_uma_passagem():
+	# monta lista ordenada 15->7 e percorre 1 unica vez
+	ordenadas = []
 	p = 15
 	while p >= 7:
 		for par in _girassois[p]:
-			campo.vai_para(par[0], par[1])
-			if get_entity_type() == Entities.Sunflower:
-				if can_harvest():
-					harvest()
-					total += 1
+			ordenadas.append((par[0], par[1]))
 		p -= 1
+
+	total = 0
+	for par in ordenadas:
+		campo.vai_para(par[0], par[1])
+		if get_entity_type() == Entities.Sunflower:
+			if can_harvest():
+				harvest()
+				total += 1
 	return total
 
 def tem_cenouras_suficientes():
@@ -75,7 +78,7 @@ def modo_girassol(objetivo):
 		_constroi_resultados(resultados)
 		t_plantio = get_time()
 
-		total = _colhe_sequencial()
+		total = _colhe_uma_passagem()
 
 		p = 15
 		while p >= 7:
