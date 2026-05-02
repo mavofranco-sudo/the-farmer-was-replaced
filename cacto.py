@@ -1,5 +1,4 @@
 # cacto.py
-# Planta, ordena (shearsort 2D) e colhe com bonus n²
 
 def _vai(x, y):
 	cx = get_pos_x()
@@ -29,10 +28,13 @@ def _wait(drones):
 		if d:
 			wait_for(d)
 
-# === FASE 1: PLANTAR EM PARALELO ===
-def _cria_planta_faixa(x_ini, x_fim):
+# === FASE 1+2: PLANTAR E ESPERAR EM PARALELO POR FAIXA ===
+# cada drone planta sua faixa e fica num loop colhendo+replantando
+# ate que toda sua faixa esteja madura, ai para
+def _cria_faixa_planta_espera(x_ini, x_fim):
 	def fn():
 		tam = get_world_size()
+		# primeiro: prepara e planta toda a faixa
 		x = x_ini
 		while x < x_fim:
 			y = 0
@@ -53,9 +55,22 @@ def _cria_planta_faixa(x_ini, x_fim):
 					plant(Entities.Cactus)
 				y += 1
 			x += 1
+		# segundo: fica varrendo a faixa ate todos maduros
+		prontos = False
+		while not prontos:
+			prontos = True
+			x = x_ini
+			while x < x_fim:
+				y = 0
+				while y < tam:
+					_vai(x, y)
+					if not can_harvest():
+						prontos = False
+					y += 1
+				x += 1
 	return fn
 
-def _planta_paralelo():
+def _planta_e_espera_paralelo():
 	tam = get_world_size()
 	nd = max_drones()
 	if nd < 1:
@@ -71,32 +86,12 @@ def _planta_paralelo():
 			x_fim = tam
 		else:
 			x_fim = x_ini + faixa
-		drones.append(_spawn(_cria_planta_faixa(x_ini, x_fim)))
+		drones.append(_spawn(_cria_faixa_planta_espera(x_ini, x_fim)))
 		i += 1
 	_wait(drones)
 
-# === FASE 2: ESPERA TODOS MADUROS ===
-def _espera_maduros():
-	tam = get_world_size()
-	todos_prontos = False
-	while not todos_prontos:
-		todos_prontos = True
-		x = 0
-		while x < tam:
-			y = 0
-			while y < tam:
-				_vai(x, y)
-				if not can_harvest():
-					todos_prontos = False
-				y += 1
-			x += 1
-
 # === FASE 3: SHEARSORT 2D PARALELO ===
-# Ordena: grid[y][x] <= grid[y+1][x] (Norte maior) e grid[y][x] <= grid[y][x+1] (Leste maior)
-# i.e. menor no SW, maior no NE
-
 def _cria_ord_linha(y, tam):
-	# ordena linha y: x cresce para Leste (menor a Oeste, maior a Leste)
 	def fn():
 		trocou = True
 		while trocou:
@@ -113,7 +108,6 @@ def _cria_ord_linha(y, tam):
 	return fn
 
 def _cria_ord_coluna(x, tam):
-	# ordena coluna x: y cresce para Norte (menor ao Sul, maior ao Norte)
 	def fn():
 		trocou = True
 		while trocou:
@@ -134,14 +128,12 @@ def _shearsort():
 	passes = tam // 2 + 1
 	p = 0
 	while p < passes:
-		# linhas em paralelo
 		drones = []
 		y = 0
 		while y < tam:
 			drones.append(_spawn(_cria_ord_linha(y, tam)))
 			y += 1
 		_wait(drones)
-		# colunas em paralelo
 		drones = []
 		x = 0
 		while x < tam:
@@ -152,26 +144,19 @@ def _shearsort():
 
 # === FASE 4: COLHER ===
 def _colhe():
-	# basta colher 1 cacto — se ordenado, colhe todos recursivamente
 	_vai(0, 0)
 	harvest()
 
-# === MODO CACTO COMPLETO ===
+# === MODO CACTO ===
 def modo_cacto(objetivo):
 	while num_items(Items.Cactus) < objetivo:
 		antes = num_items(Items.Cactus)
-		print("  [cacto] plantando...")
-		_planta_paralelo()
-		print("  [cacto] esperando maduros...")
-		_espera_maduros()
-		print("  [cacto] ordenando...")
+		tam = get_world_size()
+		print("  [cacto] plantando e esperando maduros...")
+		_planta_e_espera_paralelo()
+		print("  [cacto] ordenando (shearsort)...")
 		_shearsort()
 		print("  [cacto] colhendo...")
 		_colhe()
 		depois = num_items(Items.Cactus)
-		tam = get_world_size()
-		esperado = tam * tam * tam * tam
-		print("  [cacto] colhido=" + str(depois - antes) + " esperado=" + str(esperado) + " total=" + str(depois))
-
-def cacto():
-	modo_cacto(get_world_size() ** 4)
+		print("  [cacto] +cactos=" + str(depois - antes) + " total=" + str(depois) + "/" + str(objetivo))
