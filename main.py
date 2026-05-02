@@ -7,6 +7,7 @@ import abobora
 import girassol
 import girassol_v2
 import policultura
+import cacto
 
 def inicializa(conquista=None):
 	campo.inicializa()
@@ -205,7 +206,6 @@ farm_aboboras_infinito(100000000)
 farm_power_infinito()
 
 # farm de cactus: 3 ciclos completos
-import cacto
 
 def _farm_cactus_ciclos(num_ciclos):
 	ciclo = 0
@@ -232,5 +232,6 @@ def _farm_cactus_ciclos(num_ciclos):
 		print(">>> CACTUS ciclo=" + str(ciclo) + " total=" + str(num_items(Items.Cactus)))
 
 _farm_cactus_ciclos(3)
+
 
 
