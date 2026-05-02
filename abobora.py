@@ -36,44 +36,40 @@ def _trata_celula():
 				plant(Entities.Pumpkin)
 		campo._agua()
 
-def _verifica_e_trata_celula():
-	tipo = get_entity_type()
-	if tipo == None:
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-		_tem_problema[0] = True
-		return
-	if tipo == Entities.Dead_Pumpkin:
-		harvest()
-		if get_ground_type() != Grounds.Soil:
-			till()
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-		campo._agua()
-		_tem_problema[0] = True
-		return
-	if tipo == Entities.Pumpkin:
-		if can_harvest():
-			# madura: ok
-			return
-		# crescendo: rega e marca
-		campo._agua()
-		_tem_problema[0] = True
-		return
-	# qualquer outra entidade: limpa e replanta
-	if can_harvest():
-		harvest()
+def _planta_aqui():
+	# helper: ara e planta na celula atual
 	if get_ground_type() != Grounds.Soil:
 		till()
 	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
 		if num_unlocked(Unlocks.Plant):
 			plant(Entities.Pumpkin)
 	campo._agua()
+
+def _verifica_e_trata_celula():
+	tipo = get_entity_type()
+	# caso 1: celula vazia
+	if tipo == None:
+		_planta_aqui()
+		_tem_problema[0] = True
+		return
+	# caso 2: abobora podre (Dead_Pumpkin)
+	if tipo == Entities.Dead_Pumpkin:
+		harvest()
+		_planta_aqui()
+		_tem_problema[0] = True
+		return
+	# caso 3: abobora viva madura - ok, nao faz nada
+	if tipo == Entities.Pumpkin:
+		if can_harvest():
+			return
+		# caso 3b: crescendo - rega e marca pendente (nao e problema estrutural)
+		campo._agua()
+		_tem_crescendo[0] = True
+		return
+	# caso 4: qualquer outra entidade estranha - colhe e replanta
+	if can_harvest():
+		harvest()
+	_planta_aqui()
 	_tem_problema[0] = True
 
 def _so_colhe_madura():
@@ -134,21 +130,28 @@ def _reabastece_insumos():
 _tem_crescendo = [False]
 
 def _verifica_maturidade():
-	# so verifica se ha aboboras crescendo ou problemas estruturais
-	# NAO trata — apenas marca flags
+	# durante espera de maturidade: trata problemas estruturais que aparecerem
+	# e marca crescendo se ainda nao madurou
 	tipo = get_entity_type()
 	if tipo == None:
+		_planta_aqui()
 		_tem_problema[0] = True
 		return
 	if tipo == Entities.Dead_Pumpkin:
+		harvest()
+		_planta_aqui()
 		_tem_problema[0] = True
 		return
 	if tipo == Entities.Pumpkin:
-		if not can_harvest():
-			campo._agua()
-			_tem_crescendo[0] = True
+		if can_harvest():
+			return
+		campo._agua()
+		_tem_crescendo[0] = True
 		return
-	# qualquer outra entidade
+	# entidade estranha
+	if can_harvest():
+		harvest()
+	_planta_aqui()
 	_tem_problema[0] = True
 
 def _campo_sem_problemas():
