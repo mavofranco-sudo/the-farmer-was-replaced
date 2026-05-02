@@ -97,43 +97,73 @@ def _colhe_lista(lst):
 			if can_harvest():
 				harvest()
 
-def _c0():  _colhe_lista(_f0[0])
-def _c1():  _colhe_lista(_f1[0])
-def _c2():  _colhe_lista(_f2[0])
-def _c3():  _colhe_lista(_f3[0])
-def _c4():  _colhe_lista(_f4[0])
-def _c5():  _colhe_lista(_f5[0])
-def _c6():  _colhe_lista(_f6[0])
-def _c7():  _colhe_lista(_f7[0])
-def _c8():  _colhe_lista(_f8[0])
-def _c9():  _colhe_lista(_f9[0])
-def _c10(): _colhe_lista(_f10[0])
-def _c11(): _colhe_lista(_f11[0])
-def _c12(): _colhe_lista(_f12[0])
-def _c13(): _colhe_lista(_f13[0])
-def _c14(): _colhe_lista(_f14[0])
-def _c15(): _colhe_lista(_f15[0])
-def _c16(): _colhe_lista(_f16[0])
-def _c17(): _colhe_lista(_f17[0])
-def _c18(): _colhe_lista(_f18[0])
-def _c19(): _colhe_lista(_f19[0])
-def _c20(): _colhe_lista(_f20[0])
-def _c21(): _colhe_lista(_f21[0])
-def _c22(): _colhe_lista(_f22[0])
-def _c23(): _colhe_lista(_f23[0])
-def _c24(): _colhe_lista(_f24[0])
-def _c25(): _colhe_lista(_f25[0])
-def _c26(): _colhe_lista(_f26[0])
-def _c27(): _colhe_lista(_f27[0])
-def _c28(): _colhe_lista(_f28[0])
-def _c29(): _colhe_lista(_f29[0])
-def _c30(): _colhe_lista(_f30[0])
-def _c31(): _colhe_lista(_f31[0])
+def _c0():
+	_colhe_lista(_f0[0])
+def _c1():
+	_colhe_lista(_f1[0])
+def _c2():
+	_colhe_lista(_f2[0])
+def _c3():
+	_colhe_lista(_f3[0])
+def _c4():
+	_colhe_lista(_f4[0])
+def _c5():
+	_colhe_lista(_f5[0])
+def _c6():
+	_colhe_lista(_f6[0])
+def _c7():
+	_colhe_lista(_f7[0])
+def _c8():
+	_colhe_lista(_f8[0])
+def _c9():
+	_colhe_lista(_f9[0])
+def _c10():
+	_colhe_lista(_f10[0])
+def _c11():
+	_colhe_lista(_f11[0])
+def _c12():
+	_colhe_lista(_f12[0])
+def _c13():
+	_colhe_lista(_f13[0])
+def _c14():
+	_colhe_lista(_f14[0])
+def _c15():
+	_colhe_lista(_f15[0])
+def _c16():
+	_colhe_lista(_f16[0])
+def _c17():
+	_colhe_lista(_f17[0])
+def _c18():
+	_colhe_lista(_f18[0])
+def _c19():
+	_colhe_lista(_f19[0])
+def _c20():
+	_colhe_lista(_f20[0])
+def _c21():
+	_colhe_lista(_f21[0])
+def _c22():
+	_colhe_lista(_f22[0])
+def _c23():
+	_colhe_lista(_f23[0])
+def _c24():
+	_colhe_lista(_f24[0])
+def _c25():
+	_colhe_lista(_f25[0])
+def _c26():
+	_colhe_lista(_f26[0])
+def _c27():
+	_colhe_lista(_f27[0])
+def _c28():
+	_colhe_lista(_f28[0])
+def _c29():
+	_colhe_lista(_f29[0])
+def _c30():
+	_colhe_lista(_f30[0])
+def _c31():
+	_colhe_lista(_f31[0])
 
-_refs_f = [_f0,_f1,_f2,_f3,_f4,_f5,_f6,_f7,_f8,_f9,_f10,_f11,_f12,_f13,_f14,_f15,
-           _f16,_f17,_f18,_f19,_f20,_f21,_f22,_f23,_f24,_f25,_f26,_f27,_f28,_f29,_f30,_f31]
-_funcs_c = [_c0,_c1,_c2,_c3,_c4,_c5,_c6,_c7,_c8,_c9,_c10,_c11,_c12,_c13,_c14,_c15,
-            _c16,_c17,_c18,_c19,_c20,_c21,_c22,_c23,_c24,_c25,_c26,_c27,_c28,_c29,_c30,_c31]
+_refs_f = [_f0,_f1,_f2,_f3,_f4,_f5,_f6,_f7,_f8,_f9,_f10,_f11,_f12,_f13,_f14,_f15,_f16,_f17,_f18,_f19,_f20,_f21,_f22,_f23,_f24,_f25,_f26,_f27,_f28,_f29,_f30,_f31]
+_funcs_c = [_c0,_c1,_c2,_c3,_c4,_c5,_c6,_c7,_c8,_c9,_c10,_c11,_c12,_c13,_c14,_c15,_c16,_c17,_c18,_c19,_c20,_c21,_c22,_c23,_c24,_c25,_c26,_c27,_c28,_c29,_c30,_c31]
 
 def _colhe_por_petalas():
 	# 1) coleta medicoes em paralelo
