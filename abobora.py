@@ -130,12 +130,46 @@ def _reabastece_insumos():
 			Items.Carrot, Entities.Carrot, _noop
 		)(minimo_cenouras)
 
+# flag separado para aboboras ainda crescendo
+_tem_crescendo = [False]
+
+def _verifica_maturidade():
+	# so verifica se ha aboboras crescendo ou problemas estruturais
+	# NAO trata — apenas marca flags
+	tipo = get_entity_type()
+	if tipo == None:
+		_tem_problema[0] = True
+		return
+	if tipo == Entities.Dead_Pumpkin:
+		_tem_problema[0] = True
+		return
+	if tipo == Entities.Pumpkin:
+		if not can_harvest():
+			campo._agua()
+			_tem_crescendo[0] = True
+		return
+	# qualquer outra entidade
+	_tem_problema[0] = True
+
 def _campo_sem_problemas():
-	# uma passagem completa com todos os drones
-	# retorna True SOMENTE se nenhum drone marcou problema
+	# passagem completa: trata problemas estruturais (mortas/vazias)
+	# retorna True se nenhum problema estrutural foi encontrado
 	_tem_problema[0] = False
 	megafazenda.paraleliza_blocos(_verifica_e_trata_celula)
 	return not _tem_problema[0]
+
+def _campo_todo_maduro():
+	# passagem completa: verifica se TODAS as aboboras estao maduras
+	# nao trata nada, so rega as crescendo e marca flags
+	_tem_problema[0] = False
+	_tem_crescendo[0] = False
+	megafazenda.paraleliza_blocos(_verifica_maturidade)
+	# se achou problema estrutural OU crescendo, nao esta pronto
+	if _tem_problema[0]:
+		return False
+	if _tem_crescendo[0]:
+		return False
+	return True
 
 def modo_abobora(objetivo):
 	campo.inicializa()
@@ -152,17 +186,37 @@ def modo_abobora(objetivo):
 		_reabastece_insumos()
 		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 
-		# loop: repassa ate 3 passagens limpas consecutivas sem nenhum problema
-		esperas = 0
+		# fase 1: trata problemas estruturais ate campo estar limpo (sem mortas/vazias)
+		esperas_estrutura = 0
 		limpas = 0
 		while limpas < 3:
 			if _campo_sem_problemas():
 				limpas += 1
 			else:
 				limpas = 0
-				esperas += 1
+				esperas_estrutura += 1
+		print("    [abobora] sem mortas apos " + str(esperas_estrutura) + " repasses")
 
-		print("    [abobora] campo ok apos " + str(esperas) + " repasses, colhendo...")
+		# fase 2: aguarda todas maduras (so rega, nao replanta nada)
+		esperas_maturidade = 0
+		maduras = 0
+		while maduras < 3:
+			if _campo_todo_maduro():
+				maduras += 1
+			else:
+				maduras = 0
+				esperas_maturidade += 1
+				# se apareceu problema estrutural durante espera, volta fase 1
+				if _tem_problema[0]:
+					print("    [abobora] problema durante espera, voltando fase 1...")
+					limpas = 0
+					while limpas < 3:
+						if _campo_sem_problemas():
+							limpas += 1
+						else:
+							limpas = 0
+
+		print("    [abobora] todas maduras apos " + str(esperas_maturidade) + " esperas, colhendo...")
 
 		# colheita: SO colhe Pumpkin madura, nao toca em nada mais
 		megafazenda.paraleliza_blocos(_so_colhe_madura)
