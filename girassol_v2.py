@@ -5,11 +5,27 @@ import megafazenda
 _girassois = {}
 
 def _inicializa_celula():
-	campo.cultiva(Entities.Sunflower)
-	p = measure()
-	if p == None:
-		p = 7
-	_girassois[p].add((get_pos_x(), get_pos_y()))
+	tipo = get_entity_type()
+	if tipo == Entities.Sunflower:
+		# ja tem girassol - so mede e registra se maduro
+		if can_harvest():
+			p = measure()
+			if p == None:
+				p = 7
+			_girassois[p].add((get_pos_x(), get_pos_y()))
+		else:
+			campo._agua()
+		return
+	# celula vazia ou outra planta - colhe se tiver, ara e planta
+	if tipo != None:
+		if can_harvest():
+			harvest()
+	if get_ground_type() != Grounds.Soil:
+		till()
+	if get_ground_type() == Grounds.Soil:
+		if num_items(Items.Carrot) > 0:
+			plant(Entities.Sunflower)
+			campo._agua()
 
 def _tarefa_plantio():
 	campo.movimento_linha(_inicializa_celula)
