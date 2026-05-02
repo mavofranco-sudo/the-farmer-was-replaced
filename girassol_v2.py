@@ -4,6 +4,40 @@ import megafazenda
 _tem_crescendo = [False]
 _petalas_lista = [[]]
 
+# fatias fixas para colheita paralela (resetadas antes de cada colheita)
+_f0  = [[]]
+_f1  = [[]]
+_f2  = [[]]
+_f3  = [[]]
+_f4  = [[]]
+_f5  = [[]]
+_f6  = [[]]
+_f7  = [[]]
+_f8  = [[]]
+_f9  = [[]]
+_f10 = [[]]
+_f11 = [[]]
+_f12 = [[]]
+_f13 = [[]]
+_f14 = [[]]
+_f15 = [[]]
+_f16 = [[]]
+_f17 = [[]]
+_f18 = [[]]
+_f19 = [[]]
+_f20 = [[]]
+_f21 = [[]]
+_f22 = [[]]
+_f23 = [[]]
+_f24 = [[]]
+_f25 = [[]]
+_f26 = [[]]
+_f27 = [[]]
+_f28 = [[]]
+_f29 = [[]]
+_f30 = [[]]
+_f31 = [[]]
+
 def _planta_celula():
 	tipo = get_entity_type()
 	if tipo == None:
@@ -56,303 +90,106 @@ def _ordena_decrescente(lista):
 		lista[j + 1] = chave
 		i += 1
 
-# colheita por fatias: cada funcao colhe uma fatia da lista ordenada
-# usando indices fixos para evitar closure em loop
-_fatias = [[]]
-
-def _colhe_fatia_0():
-	for item in _fatias[0]:
+def _colhe_lista(lst):
+	for item in lst:
 		campo.vai_para(item[1], item[2])
 		if get_entity_type() == Entities.Sunflower:
 			if can_harvest():
 				harvest()
 
-def _colhe_fatia_1():
-	for item in _fatias[1]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
+def _c0():  _colhe_lista(_f0[0])
+def _c1():  _colhe_lista(_f1[0])
+def _c2():  _colhe_lista(_f2[0])
+def _c3():  _colhe_lista(_f3[0])
+def _c4():  _colhe_lista(_f4[0])
+def _c5():  _colhe_lista(_f5[0])
+def _c6():  _colhe_lista(_f6[0])
+def _c7():  _colhe_lista(_f7[0])
+def _c8():  _colhe_lista(_f8[0])
+def _c9():  _colhe_lista(_f9[0])
+def _c10(): _colhe_lista(_f10[0])
+def _c11(): _colhe_lista(_f11[0])
+def _c12(): _colhe_lista(_f12[0])
+def _c13(): _colhe_lista(_f13[0])
+def _c14(): _colhe_lista(_f14[0])
+def _c15(): _colhe_lista(_f15[0])
+def _c16(): _colhe_lista(_f16[0])
+def _c17(): _colhe_lista(_f17[0])
+def _c18(): _colhe_lista(_f18[0])
+def _c19(): _colhe_lista(_f19[0])
+def _c20(): _colhe_lista(_f20[0])
+def _c21(): _colhe_lista(_f21[0])
+def _c22(): _colhe_lista(_f22[0])
+def _c23(): _colhe_lista(_f23[0])
+def _c24(): _colhe_lista(_f24[0])
+def _c25(): _colhe_lista(_f25[0])
+def _c26(): _colhe_lista(_f26[0])
+def _c27(): _colhe_lista(_f27[0])
+def _c28(): _colhe_lista(_f28[0])
+def _c29(): _colhe_lista(_f29[0])
+def _c30(): _colhe_lista(_f30[0])
+def _c31(): _colhe_lista(_f31[0])
 
-def _colhe_fatia_2():
-	for item in _fatias[2]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_3():
-	for item in _fatias[3]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_4():
-	for item in _fatias[4]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_5():
-	for item in _fatias[5]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_6():
-	for item in _fatias[6]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_7():
-	for item in _fatias[7]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_8():
-	for item in _fatias[8]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_9():
-	for item in _fatias[9]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_10():
-	for item in _fatias[10]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_11():
-	for item in _fatias[11]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_12():
-	for item in _fatias[12]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_13():
-	for item in _fatias[13]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_14():
-	for item in _fatias[14]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_15():
-	for item in _fatias[15]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_16():
-	for item in _fatias[16]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_17():
-	for item in _fatias[17]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_18():
-	for item in _fatias[18]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_19():
-	for item in _fatias[19]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_20():
-	for item in _fatias[20]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_21():
-	for item in _fatias[21]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_22():
-	for item in _fatias[22]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_23():
-	for item in _fatias[23]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_24():
-	for item in _fatias[24]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_25():
-	for item in _fatias[25]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_26():
-	for item in _fatias[26]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_27():
-	for item in _fatias[27]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_28():
-	for item in _fatias[28]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_29():
-	for item in _fatias[29]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_30():
-	for item in _fatias[30]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-def _colhe_fatia_31():
-	for item in _fatias[31]:
-		campo.vai_para(item[1], item[2])
-		if get_entity_type() == Entities.Sunflower:
-			if can_harvest():
-				harvest()
-
-_funcs_fatia = [
-	_colhe_fatia_0,  _colhe_fatia_1,  _colhe_fatia_2,  _colhe_fatia_3,
-	_colhe_fatia_4,  _colhe_fatia_5,  _colhe_fatia_6,  _colhe_fatia_7,
-	_colhe_fatia_8,  _colhe_fatia_9,  _colhe_fatia_10, _colhe_fatia_11,
-	_colhe_fatia_12, _colhe_fatia_13, _colhe_fatia_14, _colhe_fatia_15,
-	_colhe_fatia_16, _colhe_fatia_17, _colhe_fatia_18, _colhe_fatia_19,
-	_colhe_fatia_20, _colhe_fatia_21, _colhe_fatia_22, _colhe_fatia_23,
-	_colhe_fatia_24, _colhe_fatia_25, _colhe_fatia_26, _colhe_fatia_27,
-	_colhe_fatia_28, _colhe_fatia_29, _colhe_fatia_30, _colhe_fatia_31,
-]
+_refs_f = [_f0,_f1,_f2,_f3,_f4,_f5,_f6,_f7,_f8,_f9,_f10,_f11,_f12,_f13,_f14,_f15,
+           _f16,_f17,_f18,_f19,_f20,_f21,_f22,_f23,_f24,_f25,_f26,_f27,_f28,_f29,_f30,_f31]
+_funcs_c = [_c0,_c1,_c2,_c3,_c4,_c5,_c6,_c7,_c8,_c9,_c10,_c11,_c12,_c13,_c14,_c15,
+            _c16,_c17,_c18,_c19,_c20,_c21,_c22,_c23,_c24,_c25,_c26,_c27,_c28,_c29,_c30,_c31]
 
 def _colhe_por_petalas():
-	# 1) coleta todas as medicoes em paralelo com todos os drones
+	# 1) coleta medicoes em paralelo
 	_petalas_lista[0] = []
 	megafazenda.paraleliza_blocos(_coleta_petalas)
 
 	lista = _petalas_lista[0]
-	if len(lista) == 0:
-		return
+	total = len(lista)
+	if total == 0:
+		print("    [girassol] nenhum girassol para colher")
+		return 0
 
-	# 2) ordena decrescente por petalas (maior bonus primeiro)
+	# 2) ordena decrescente por petalas
 	_ordena_decrescente(lista)
 
-	# 3) divide lista ordenada em fatias para cada drone
+	# 3) distribui em fatias por referencia direta
 	nd = max_drones()
 	if nd < 1:
 		nd = 1
-	tam_lista = len(lista)
-	tam_fatia = tam_lista // nd
+	if nd > 32:
+		nd = 32
+
+	tam_fatia = total // nd
 	if tam_fatia < 1:
 		tam_fatia = 1
 
-	# inicializa fatias vazias
 	i = 0
-	while i < 32:
-		_fatias.append([])
-		i += 1
-	while len(_fatias) < 32:
-		_fatias.append([])
-
-	# distribui itens nas fatias
-	i = 0
-	while i < nd and i < 32:
+	while i < nd:
 		inicio = i * tam_fatia
 		fim = inicio + tam_fatia
 		if i == nd - 1:
-			fim = tam_lista
-		if inicio < tam_lista:
-			_fatias[i] = lista[inicio:fim]
+			fim = total
+		if inicio < total:
+			_refs_f[i][0] = lista[inicio:fim]
 		else:
-			_fatias[i] = []
+			_refs_f[i][0] = []
 		i += 1
 
-	# 4) spawna um drone por fatia para colher em paralelo
+	# 4) spawna drones para colher em paralelo
 	drones = []
 	i = 0
-	while i < nd and i < len(_funcs_fatia):
-		if len(_fatias[i]) > 0:
-			primeiro = _fatias[i][0]
+	while i < nd:
+		if len(_refs_f[i][0]) > 0:
+			primeiro = _refs_f[i][0][0]
 			campo.vai_para(primeiro[1], primeiro[2])
-			drone = spawn_drone(_funcs_fatia[i])
+			drone = spawn_drone(_funcs_c[i])
 			if drone:
 				drones.append(drone)
 			else:
-				_funcs_fatia[i]()
+				_funcs_c[i]()
 		i += 1
 
 	for d in drones:
 		wait_for(d)
+
+	return total
 
 def tem_cenouras_suficientes():
 	tam = get_world_size()
@@ -361,10 +198,34 @@ def tem_cenouras_suficientes():
 def um_ciclo_girassol():
 	if not tem_cenouras_suficientes():
 		return False
+
+	t_inicio = time()
+
 	megafazenda.paraleliza_blocos(_planta_celula)
+
+	t_plantio = time()
+
 	while not _campo_pronto():
 		pass
-	_colhe_por_petalas()
+
+	t_crescido = time()
+
+	colhidos = _colhe_por_petalas()
+
+	t_fim = time()
+
+	duracao = t_fim - t_inicio
+	if duracao < 0.001:
+		duracao = 0.001
+	por_min = int(colhidos * 60 / duracao)
+
+	print("    [girassol] colhidos=" + str(colhidos) +
+		" tempo=" + str(int(duracao * 1000)) + "ms" +
+		" plantio=" + str(int((t_plantio - t_inicio) * 1000)) + "ms" +
+		" crescimento=" + str(int((t_crescido - t_plantio) * 1000)) + "ms" +
+		" colheita=" + str(int((t_fim - t_crescido) * 1000)) + "ms" +
+		" ritmo=" + str(por_min) + "/min")
+
 	return True
 
 def modo_girassol(objetivo):
