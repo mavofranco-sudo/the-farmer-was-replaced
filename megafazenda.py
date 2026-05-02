@@ -247,15 +247,21 @@ def paraleliza_blocos(acao):
 def paraleliza_linha(acao, por_linha=True):
 	tam = get_world_size()
 	drones = []
+	resultados = []
 	for i in range(tam):
 		if por_linha:
 			campo.vai_para(0, i)
 		else:
 			campo.vai_para(i, 0)
-		drone = spawn_drone(chapeus.usa_e_faz(acao))
+		tarefa = chapeus.usa_e_faz(acao)
+		drone = spawn_drone(tarefa)
 		if drone:
 			drones.append(drone)
 		else:
-			chapeus.usa_e_faz(acao)()
+			res = tarefa()
+			resultados.append(res)
 	for drone in drones:
-		wait_for(drone)
+		res = wait_for(drone)
+		resultados.append(res)
+	return resultados
+
