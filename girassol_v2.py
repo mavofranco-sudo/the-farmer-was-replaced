@@ -4,7 +4,7 @@ import megafazenda
 _tem_crescendo = [False]
 _petalas_lista = [[]]
 
-# fatias fixas para colheita paralela (resetadas antes de cada colheita)
+# fatias para colheita paralela dentro de cada grupo de petalas
 _f0  = [[]]
 _f1  = [[]]
 _f2  = [[]]
@@ -38,6 +38,8 @@ _f29 = [[]]
 _f30 = [[]]
 _f31 = [[]]
 
+_refs_f = [_f0,_f1,_f2,_f3,_f4,_f5,_f6,_f7,_f8,_f9,_f10,_f11,_f12,_f13,_f14,_f15,_f16,_f17,_f18,_f19,_f20,_f21,_f22,_f23,_f24,_f25,_f26,_f27,_f28,_f29,_f30,_f31]
+
 def _planta_celula():
 	tipo = get_entity_type()
 	if tipo == None:
@@ -58,7 +60,6 @@ def _planta_celula():
 
 def _verifica_crescimento():
 	tipo = get_entity_type()
-	# celula vazia ou girassol ainda crescendo = nao pronto
 	if tipo == None:
 		_tem_crescendo[0] = True
 		return
@@ -78,21 +79,10 @@ def _coleta_petalas():
 		if can_harvest():
 			p = measure()
 			if p == None:
-				p = 0
+				p = 7
 			x = get_pos_x()
 			y = get_pos_y()
 			_petalas_lista[0].append([p, x, y])
-
-def _ordena_decrescente(lista):
-	i = 1
-	while i < len(lista):
-		chave = lista[i]
-		j = i - 1
-		while j >= 0 and lista[j][0] < chave[0]:
-			lista[j + 1] = lista[j]
-			j -= 1
-		lista[j + 1] = chave
-		i += 1
 
 def _colhe_lista(lst):
 	for item in lst:
@@ -166,36 +156,19 @@ def _c30():
 def _c31():
 	_colhe_lista(_f31[0])
 
-_refs_f = [_f0,_f1,_f2,_f3,_f4,_f5,_f6,_f7,_f8,_f9,_f10,_f11,_f12,_f13,_f14,_f15,_f16,_f17,_f18,_f19,_f20,_f21,_f22,_f23,_f24,_f25,_f26,_f27,_f28,_f29,_f30,_f31]
 _funcs_c = [_c0,_c1,_c2,_c3,_c4,_c5,_c6,_c7,_c8,_c9,_c10,_c11,_c12,_c13,_c14,_c15,_c16,_c17,_c18,_c19,_c20,_c21,_c22,_c23,_c24,_c25,_c26,_c27,_c28,_c29,_c30,_c31]
 
-def _colhe_por_petalas():
-	# 1) coleta medicoes em paralelo
-	_petalas_lista[0] = []
-	megafazenda.paraleliza_blocos(_coleta_petalas)
-
-	lista = _petalas_lista[0]
-	total = len(lista)
-	if total == 0:
-		# nao encontrou nenhum maduro - verifica se ha girassois no campo
-		tam = get_world_size()
-		print("    [girassol] aviso: 0 maduros (n=" + str(tam) + " power=" + str(num_items(Items.Power)) + ")")
-		return 0
-
-	# 2) ordena decrescente por petalas
-	_ordena_decrescente(lista)
-
-	# 3) distribui em fatias por referencia direta
+def _colhe_grupo_paralelo(grupo):
+	# divide o grupo em fatias e colhe com todos os drones em paralelo
 	nd = max_drones()
 	if nd < 1:
 		nd = 1
 	if nd > 32:
 		nd = 32
-
+	total = len(grupo)
 	tam_fatia = total // nd
 	if tam_fatia < 1:
 		tam_fatia = 1
-
 	i = 0
 	while i < nd:
 		inicio = i * tam_fatia
@@ -203,12 +176,10 @@ def _colhe_por_petalas():
 		if i == nd - 1:
 			fim = total
 		if inicio < total:
-			_refs_f[i][0] = lista[inicio:fim]
+			_refs_f[i][0] = grupo[inicio:fim]
 		else:
 			_refs_f[i][0] = []
 		i += 1
-
-	# 4) spawna drones para colher em paralelo
 	drones = []
 	i = 0
 	while i < nd:
@@ -221,10 +192,30 @@ def _colhe_por_petalas():
 			else:
 				_funcs_c[i]()
 		i += 1
-
 	for d in drones:
 		wait_for(d)
 
+def _colhe_por_petalas():
+	# coleta medicoes em paralelo
+	_petalas_lista[0] = []
+	megafazenda.paraleliza_blocos(_coleta_petalas)
+	lista = _petalas_lista[0]
+	total = len(lista)
+	if total == 0:
+		tam = get_world_size()
+		print("    [girassol] aviso: 0 maduros (n=" + str(tam) + ")")
+		return 0
+	# agrupa por numero de petalas (15 a 7)
+	# colhe cada grupo do maior para o menor - preserva bonus 8x
+	p = 15
+	while p >= 7:
+		grupo = []
+		for item in lista:
+			if item[0] == p:
+				grupo.append(item)
+		if len(grupo) > 0:
+			_colhe_grupo_paralelo(grupo)
+		p -= 1
 	return total
 
 def tem_cenouras_suficientes():
@@ -234,48 +225,33 @@ def tem_cenouras_suficientes():
 def um_ciclo_girassol():
 	if not tem_cenouras_suficientes():
 		return False
-
 	t0 = get_time()
-
 	megafazenda.paraleliza_blocos(_planta_celula)
 	t_plantio = get_time()
-
-	regas = 0
 	while not _campo_pronto():
-		regas += 1
+		pass
 	t_crescido = get_time()
-
 	colhidos = _colhe_por_petalas()
 	t_fim = get_time()
-
 	dur_total = t_fim - t0
 	dur_plantio = t_plantio - t0
-	dur_crescimento = t_crescido - t_plantio
-	dur_colheita = t_fim - t_crescido
-
+	dur_cresc = t_crescido - t_plantio
+	dur_colh = t_fim - t_crescido
 	por_min = 0
 	if dur_total > 0:
 		por_min = (colhidos * 60) // dur_total
-
-	ms_total = dur_total * 1000
-	ms_plantio = dur_plantio * 1000
-	ms_cresc = dur_crescimento * 1000
-	ms_colh = dur_colheita * 1000
-
 	print("    [girassol] colhidos=" + str(colhidos) +
-		" total=" + str(ms_total // 1) + "ms" +
-		" plantio=" + str(ms_plantio // 1) + "ms" +
-		" crescimento=" + str(ms_cresc // 1) + "ms" +
-		" colheita=" + str(ms_colh // 1) + "ms" +
+		" total=" + str(dur_total * 1000 // 1) + "ms" +
+		" plantio=" + str(dur_plantio * 1000 // 1) + "ms" +
+		" cresc=" + str(dur_cresc * 1000 // 1) + "ms" +
+		" colh=" + str(dur_colh * 1000 // 1) + "ms" +
 		" ritmo=" + str(por_min) + "/min")
-
 	return True
 
 def modo_girassol(objetivo):
 	while num_items(Items.Power) < objetivo:
 		if not tem_cenouras_suficientes():
-			print("    [girassol] sem cenouras (power=" +
-				str(num_items(Items.Power)) + " obj=" + str(objetivo) + ")")
+			print("    [girassol] sem cenouras (power=" + str(num_items(Items.Power)) + " obj=" + str(objetivo) + ")")
 			return
 		ok = um_ciclo_girassol()
 		if not ok:
