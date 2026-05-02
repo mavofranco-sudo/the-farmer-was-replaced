@@ -37,16 +37,11 @@ def _trata_celula():
 		campo._agua()
 
 def _planta_aqui():
-	# helper: ara ate solo ser Soil (pode precisar de 2 tills: Grassland->Dirt->Soil)
-	tentativas = 0
-	while get_ground_type() != Grounds.Soil and tentativas < 3:
-		till()
-		tentativas += 1
-	if get_ground_type() == Grounds.Soil:
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-	campo._agua()
+	# helper: usa till_ate_soil do campo (loop ate Soil garantido)
+	campo.till_ate_soil()
+	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+		if num_unlocked(Unlocks.Plant):
+			plant(Entities.Pumpkin)
 
 def _verifica_e_trata_celula():
 	tipo = get_entity_type()
@@ -87,16 +82,10 @@ def _replanta_celula():
 	if tipo != None:
 		if can_harvest():
 			harvest()
-	# ara ate solo ser Soil (Grassland->Dirt->Soil pode precisar de 2 tills)
-	tentativas = 0
-	while get_ground_type() != Grounds.Soil and tentativas < 3:
-		till()
-		tentativas += 1
-	if get_ground_type() == Grounds.Soil:
-		if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
-			if num_unlocked(Unlocks.Plant):
-				plant(Entities.Pumpkin)
-	campo._agua()
+	campo.till_ate_soil()
+	if num_items(Items.Carrot) >= _CUSTO_SEMENTE:
+		if num_unlocked(Unlocks.Plant):
+			plant(Entities.Pumpkin)
 
 def _limpa_nao_abobora():
 	tipo = get_entity_type()
@@ -137,8 +126,7 @@ def _reabastece_insumos():
 _tem_crescendo = [False]
 
 def _verifica_maturidade():
-	# durante espera de maturidade: trata problemas estruturais que aparecerem
-	# e marca crescendo se ainda nao madurou
+	# aguarda maturidade: so rega se ainda crescendo, trata problemas se aparecerem
 	tipo = get_entity_type()
 	if tipo == None:
 		_planta_aqui()
@@ -151,11 +139,13 @@ def _verifica_maturidade():
 		return
 	if tipo == Entities.Pumpkin:
 		if can_harvest():
+			# madura: nao faz nada, nao rega (para nao interferir)
 			return
+		# ainda crescendo: rega para acelerar
 		campo._agua()
 		_tem_crescendo[0] = True
 		return
-	# entidade estranha
+	# entidade estranha: limpa e replanta
 	if can_harvest():
 		harvest()
 	_planta_aqui()
@@ -184,6 +174,7 @@ def _campo_todo_maduro():
 def modo_abobora(objetivo):
 	campo.inicializa()
 	megafazenda.inicializa()
+	# limpa e ara o campo todo antes de comecar
 	megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 	megafazenda.paraleliza_blocos(_ara_celula)
 	ciclo = 0
@@ -193,28 +184,36 @@ def modo_abobora(objetivo):
 		megafazenda.inicializa()
 		print("    [abobora] ciclo=" + str(ciclo) + " n=" + str(get_world_size()) +
 			" abob=" + str(num_items(Items.Pumpkin)) + "/" + str(objetivo))
+
+		# reabastece insumos antes de cada ciclo
 		_reabastece_insumos()
-		megafazenda.paraleliza_blocos(_limpa_nao_abobora)
 
-		# fase 1: trata problemas estruturais ate campo estar limpo (sem mortas/vazias)
-		esperas_estrutura = 0
+		# FASE 1: garante campo 100% plantado e sem mortas
+		# repassa ate nenhum problema estrutural
+		print("    [abobora] fase1: limpando e plantando...")
 		while not _campo_sem_problemas():
-			esperas_estrutura += 1
-		print("    [abobora] sem mortas apos " + str(esperas_estrutura) + " repasses")
+			pass
 
-		# fase 2: aguarda todas maduras (so rega, nao replanta nada)
-		esperas_maturidade = 0
-		while not _campo_todo_maduro():
-			esperas_maturidade += 1
-			# se apareceu problema estrutural durante espera, volta fase 1
-			if _tem_problema[0]:
-				print("    [abobora] problema durante espera, voltando fase 1...")
-				while not _campo_sem_problemas():
-					pass
+		# FASE 2: aguarda todas as aboboras atingirem can_harvest
+		# se aparecer morta/vazia durante espera volta para fase 1
+		print("    [abobora] fase2: aguardando maturidade...")
+		esperas = 0
+		pronto = False
+		while not pronto:
+			if _campo_todo_maduro():
+				pronto = True
+			else:
+				esperas += 1
+				if _tem_problema[0]:
+					# problema estrutural apareceu: trata antes de continuar
+					while not _campo_sem_problemas():
+						pass
 
-		print("    [abobora] todas maduras apos " + str(esperas_maturidade) + " esperas, colhendo...")
+		print("    [abobora] maduras apos " + str(esperas) + " repasses - colhendo...")
 
-		# passo 1: todos os drones colhem simultaneamente (bonus n²)
+		# FASE 3: colheita simultanea com todos os drones (bonus n²)
 		megafazenda.paraleliza_blocos(_colhe_celula_bonus)
-		# passo 2: todos os drones replantam o campo inteiro em paralelo
+
+		# FASE 4: replanta campo inteiro imediatamente apos colheita
+		print("    [abobora] replantando campo...")
 		megafazenda.paraleliza_blocos(_replanta_celula)
